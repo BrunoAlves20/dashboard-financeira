@@ -66,4 +66,70 @@ export class TransactionsService {
 
     return { message: 'Transação removida com sucesso' };
   }
+
+  async getSummary(userId: string) {
+  // 1. Buscamos a soma total de INCOME e EXPENSE do usuário logado
+  const aggregations = await this.prisma.transaction.aggregate({
+    where: { userId },
+    _sum: {
+      amount: true,
+    },
+    _count: {
+      id: true,
+    },
+  });
+
+  // Buscamos as somas separadas por tipo (Receitas x Despesas)
+  const totals = await this.prisma.transaction.groupBy({
+    by: ['type'],
+    where: { userId },
+    _sum: {
+      amount: true,
+    },
+  });
+
+  // Organiza os totais em variáveis fáceis de usar
+  let totalIncome = 0;
+  let totalExpense = 0;
+
+  totals.forEach((item) => {
+    if (item.type === 'INCOME') {
+      totalIncome = item._sum.amount || 0;
+    } else if (item.type === 'EXPENSE') {
+      totalExpense = item._sum.amount || 0;
+    }
+  });
+
+  const balance = totalIncome - totalExpense;
+
+  // 2. Buscamos o total de despesas agrupado por categoria (apenas EXPENSE)
+  const expensesByCategory = await this.prisma.transaction.groupBy({
+    by: ['category'],
+    where: { 
+      userId,
+      type: 'EXPENSE',
+    },
+    _sum: {
+      amount: true,
+    },
+    orderBy: {
+      _sum: {
+        amount: 'desc',
+      },
+    },
+  });
+
+  // Formatamos o retorno das categorias para ficar fácil de plotar no gráfico de pizza do Angular
+  const formattedCategories = expensesByCategory.map((item) => ({
+    category: item.category,
+    value: item._sum.amount || 0,
+  }));
+
+  return {
+    totalIncome,
+    totalExpense,
+    balance,
+    expensesByCategory: formattedCategories,
+  };
+}
 }

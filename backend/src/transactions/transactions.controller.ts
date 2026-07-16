@@ -22,6 +22,10 @@ export class TransactionsController {
   findAll(@GetUser('id') userId: string) {
     return this.transactionsService.findAll(userId);
   }
+  @Get('summary')
+  getSummary(@GetUser('id') userId: string) {
+    return this.transactionsService.getSummary(userId);
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string, @GetUser('id') userId: string) {
@@ -40,5 +44,5 @@ export class TransactionsController {
   @Delete(':id')
   remove(@Param('id') id: string, @GetUser('id') userId: string) {
     return this.transactionsService.remove(id, userId);
-  }
+  }  
 }
