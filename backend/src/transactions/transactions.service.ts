@@ -5,131 +5,66 @@ import { UpdateTransactionDto } from './dto/update-transaction.dto';
 
 @Injectable()
 export class TransactionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
-  // 1. Cria uma transação vinculada ao usuário logado
   async create(createTransactionDto: CreateTransactionDto, userId: string) {
+    const { categoryId, date, ...data } = createTransactionDto;
+
     return this.prisma.transaction.create({
       data: {
-        title: createTransactionDto.title,
-        amount: createTransactionDto.amount,
-        type: createTransactionDto.type,
-        category: createTransactionDto.category,
-        date: new Date(createTransactionDto.date),
+        ...data,
+        date: date ? new Date(date) : new Date(),
         userId,
+        ...(categoryId ? { categoryId } : {}),
       },
     });
   }
 
-  // 2. Lista todas as transações de um usuário específico
-  async findAll(userId: string) {
+  async findAllByUser(userId: string) {
     return this.prisma.transaction.findMany({
       where: { userId },
-      orderBy: { date: 'desc' }, // Organiza das mais recentes para as mais antigas
+      include: {
+        category: true,
+      },
+      orderBy: {
+        date: 'desc',
+      },
     });
   }
 
-  // 3. Busca uma única transação garantindo a posse do usuário
-  async findOne(id: string, userId: string) {
+  async getSummary(userId: string) {
+    const transactions = await this.prisma.transaction.findMany({
+      where: { userId },
+    });
+
+    const incomes = transactions
+      .filter((t) => t.type === 'INCOME')
+      .reduce((acc, t) => acc + t.amount, 0);
+
+    const expenses = transactions
+      .filter((t) => t.type === 'EXPENSE')
+      .reduce((acc, t) => acc + t.amount, 0);
+
+    const balance = incomes - expenses;
+
+    return {
+      balance,
+      incomes,
+      expenses,
+    };
+  }
+
+  async remove(id: string, userId: string) {
     const transaction = await this.prisma.transaction.findFirst({
       where: { id, userId },
     });
 
     if (!transaction) {
-      throw new NotFoundException('Transação não encontrada');
+      throw new NotFoundException('Transação não encontrada.');
     }
 
-    return transaction;
-  }
-
-  // 4. Atualiza uma transação existente
-  async update(id: string, updateTransactionDto: UpdateTransactionDto, userId: string) {
-    // Garante que ela existe e é do usuário antes de atualizar
-    await this.findOne(id, userId);
-
-    return this.prisma.transaction.update({
-      where: { id },
-      data: {
-        ...updateTransactionDto,
-        date: updateTransactionDto.date ? new Date(updateTransactionDto.date) : undefined,
-      },
-    });
-  }
-
-  // 5. Remove uma transação do banco
-  async remove(id: string, userId: string) {
-    await this.findOne(id, userId);
-
-    await this.prisma.transaction.delete({
+    return this.prisma.transaction.delete({
       where: { id },
     });
-
-    return { message: 'Transação removida com sucesso' };
   }
-
-  async getSummary(userId: string) {
-  // 1. Buscamos a soma total de INCOME e EXPENSE do usuário logado
-  const aggregations = await this.prisma.transaction.aggregate({
-    where: { userId },
-    _sum: {
-      amount: true,
-    },
-    _count: {
-      id: true,
-    },
-  });
-
-  // Buscamos as somas separadas por tipo (Receitas x Despesas)
-  const totals = await this.prisma.transaction.groupBy({
-    by: ['type'],
-    where: { userId },
-    _sum: {
-      amount: true,
-    },
-  });
-
-  // Organiza os totais em variáveis fáceis de usar
-  let totalIncome = 0;
-  let totalExpense = 0;
-
-  totals.forEach((item) => {
-    if (item.type === 'INCOME') {
-      totalIncome = item._sum.amount || 0;
-    } else if (item.type === 'EXPENSE') {
-      totalExpense = item._sum.amount || 0;
-    }
-  });
-
-  const balance = totalIncome - totalExpense;
-
-  // 2. Buscamos o total de despesas agrupado por categoria (apenas EXPENSE)
-  const expensesByCategory = await this.prisma.transaction.groupBy({
-    by: ['category'],
-    where: { 
-      userId,
-      type: 'EXPENSE',
-    },
-    _sum: {
-      amount: true,
-    },
-    orderBy: {
-      _sum: {
-        amount: 'desc',
-      },
-    },
-  });
-
-  // Formatamos o retorno das categorias para ficar fácil de plotar no gráfico de pizza do Angular
-  const formattedCategories = expensesByCategory.map((item) => ({
-    category: item.category,
-    value: item._sum.amount || 0,
-  }));
-
-  return {
-    totalIncome,
-    totalExpense,
-    balance,
-    expensesByCategory: formattedCategories,
-  };
-}
 }

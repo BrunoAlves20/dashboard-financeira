@@ -7,6 +7,7 @@ datasource db {
   provider = "postgresql"
 }
 
+// 1. Usuário da Aplicação
 model User {
   id           String        @id @default(uuid())
   email        String        @unique
@@ -14,27 +15,64 @@ model User {
   password     String
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
-  transactions Transaction[] // Relacionamento 1-para-Muitos (Um usuário pode ter várias transações)
+  transactions Transaction[] 
+  categories    Category []
 
   @@map("users") // Mapeia o nome da tabela no banco para "users" em minúsculo
 }
+// 2. Tabela de Categorias Customizadas com Limite de Gastos
+model Category {
+  id          String   @id @default(uuid())
+  name        String
+  budgetLimit Float?   // Limite opcional de gasto mensal (Ex: 300.00 para Vestuário)
+  color       String?  // Cor HEX para exibir na interface (Ex: #FF5733)
+  userId      String
+  createdAt   DateTime @default(now())
 
-model Transaction {
-  id        String          @id @default(uuid())
-  title     String
-  amount    Float
-  type      TransactionType
-  category  String
-  date      DateTime
-  userId    String
-  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
 
-  @@map("transactions")
+  @@unique([name, userId]) // Garante que o mesmo usuário não crie duas categorias com o mesmo nome
+  @@map("categories")
 }
 
+// Enum para Formas de Pagamento
+enum PaymentMethod {
+  PIX
+  CREDIT
+  DEBIT
+  CASH
+  BOLETO
+}
+
+// Enum para Tipos de Transação
 enum TransactionType {
-  INCOME  // Receitas (entradas)
-  EXPENSE // Despesas (saídas)
+  INCOME
+  EXPENSE
+}
+
+// 3. Transações Financeiras Evoluídas
+model Transaction {
+  id             String          @id @default(uuid())
+  title          String
+  amount         Float
+  type           TransactionType
+  paymentMethod  PaymentMethod   @default(PIX)
+  bank           String?         // Ex: "Nubank", "Inter", "Itaú"
+  date           DateTime        @default(now())
+  
+  // Suporte a Parcelamento no Crédito
+  installmentsCount   Int        @default(1) // Quantas vezes foi parcelado (Ex: 3x)
+  currentInstallment  Int        @default(1) // Qual é a parcela atual (Ex: 1 de 3)
+  
+  userId     String
+  categoryId String?
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("transactions")
 }

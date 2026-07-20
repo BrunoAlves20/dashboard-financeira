@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { Category } from './category.service';
 
 export interface TransactionSummary {
   balance: number;
@@ -13,8 +14,10 @@ export interface Transaction {
   title: string;
   amount: number;
   type: 'INCOME' | 'EXPENSE';
-  category: string;
+  paymentMethod?: 'PIX' | 'CREDIT' | 'DEBIT' | 'CASH' | 'BOLETO';
+  bank?: string;
   date: string;
+  category?: Category;
 }
 
 @Injectable({
@@ -25,7 +28,6 @@ export class TransactionService {
 
   constructor(private http: HttpClient) {}
 
-  // Função auxiliar para pegar o token e montar o cabeçalho de autorização
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');
     return new HttpHeaders({
@@ -33,22 +35,26 @@ export class TransactionService {
     });
   }
 
-  // 1. Buscar o resumo financeiro (Saldo, Entradas, Saídas)
   getSummary(): Observable<TransactionSummary> {
     return this.http.get<TransactionSummary>(`${this.apiUrl}/summary`, { headers: this.getHeaders() });
   }
 
-  // 2. Listar todas as transações do usuário
   getTransactions(): Observable<Transaction[]> {
     return this.http.get<Transaction[]>(this.apiUrl, { headers: this.getHeaders() });
   }
 
-  // 3. Criar uma nova transação (Receita ou Despesa)
-  createTransaction(transaction: { title: string; amount: number; type: 'INCOME' | 'EXPENSE'; category: string; date: string }): Observable<Transaction> {
+  createTransaction(transaction: {
+    title: string;
+    amount: number;
+    type: 'INCOME' | 'EXPENSE';
+    paymentMethod?: string;
+    bank?: string;
+    categoryId?: string;
+    date?: string;
+  }): Observable<Transaction> {
     return this.http.post<Transaction>(this.apiUrl, transaction, { headers: this.getHeaders() });
   }
 
-  // 4. Excluir uma transação específica por ID
   deleteTransaction(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
   }
