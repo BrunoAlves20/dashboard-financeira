@@ -1,4 +1,4 @@
-# 📊 Finanças Inteligentes (Financial Dashboard Full-Stack)
+# 📊 Finanças Inteligentes (Financial Dashboard )
 
 ![Angular](https://img.shields.io/badge/Angular-17+-DD0031?style=for-the-badge&logo=angular&logoColor=white)
 ![NestJS](https://img.shields.io/badge/NestJS-10+-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)
