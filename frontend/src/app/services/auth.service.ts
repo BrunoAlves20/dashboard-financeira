@@ -18,7 +18,8 @@ interface AuthResponse {
 })
 export class AuthService {
   // URL do nosso backend NestJS
-  private apiUrl = 'http://localhost:3000';
+  // private apiUrl = 'http://localhost:3000';
+  private apiUrl = 'https://dashboard-financeira.onrender.com';
 
   constructor(
     private http: HttpClient,

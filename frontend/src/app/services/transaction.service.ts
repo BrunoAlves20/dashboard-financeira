@@ -24,7 +24,8 @@ export interface Transaction {
   providedIn: 'root'
 })
 export class TransactionService {
-  private apiUrl = 'http://localhost:3000/transactions';
+  // private apiUrl = 'http://localhost:3000/transactions';
+  private apiUrl = 'https://dashboard-financeira.onrender.com/transactions';
 
   constructor(private http: HttpClient) {}
 
