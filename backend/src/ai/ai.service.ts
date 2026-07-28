@@ -1,49 +1,35 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { GoogleGenAI } from '@google/genai';
 import { PrismaService } from '../prisma/prisma.service';
+import { buildFinancialPrompt } from './prompts/financial.prompt';
 
 @Injectable()
 export class AiService {
   private ai: GoogleGenAI;
+  private readonly logger = new Logger(AiService.name);
 
   constructor(private prisma: PrismaService) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      console.warn('⚠️ GEMINI_API_KEY não foi configurada no .env');
+      this.logger.warn('⚠️ GEMINI_API_KEY não foi configurada no .env');
     }
     this.ai = new GoogleGenAI({ apiKey: apiKey || '' });
   }
 
   async askFinancialAssistant(prompt: string, userId: string): Promise<string> {
     try {
-      // 1. Busca os dados reais do usuário no banco
+      // 1. Busca os dados reais do usuário no banco (Sua lógica mantida intacta)
       const summary = await this.getSummary(userId);
       const categories = await this.getCategories(userId);
 
-      // 2. Formata o contexto do usuário para a IA entender
-      const contextText = `
-        Você é o "FinAI", um assistente financeiro pessoal, direto, amigável e focado em manter o usuário dentro do orçamento.
-        
-        SITUAÇÃO FINANCEIRA ATUAL DO USUÁRIO:
-        - Saldo Geral Atual: R$ ${summary.balance.toFixed(2)}
-        - Receitas do Mês: R$ ${summary.incomes.toFixed(2)}
-        - Despesas do Mês: R$ ${summary.expenses.toFixed(2)}
-
-        LIMITES E GASTOS ACUMULADOS POR CATEGORIA:
-        ${categories.map(c => `- Categoria: "${c.name}" | Limite Definido: ${c.budgetLimit ? 'R$ ' + c.budgetLimit.toFixed(2) : 'Sem limite'} | Já Gasto no Mês: R$ ${c.totalSpent.toFixed(2)} | Restante Disponível: ${c.budgetLimit ? 'R$ ' + (c.budgetLimit - c.totalSpent).toFixed(2) : 'Ilimitado'}`).join('\n')}
-
-        INSTRUÇÕES DE RESPOSTA:
-        - Responda em Português do Brasil.
-        - Seja direto e objetivo (no máximo 3 a 4 frases).
-        - Se a pergunta for sobre uma compra, avalie se ela ultrapassa o saldo atual ou o limite da categoria correspondente.
-        - Diga claramente "Sim" ou "Não" logo no início e explique o motivo com base nos valores numéricos.
-      `;
+      // 2. Gera o texto final chamando o nosso arquivo externo
+      const finalPromptText = buildFinancialPrompt(summary, categories, prompt);
 
       // 3. Executa a chamada no modelo Gemini
       const response = await this.ai.models.generateContent({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-flash-latest',
         contents: [
-          { role: 'user', parts: [{ text: `${contextText}\n\nPERGUNTA DO USUÁRIO:\n"${prompt}"` }] }
+          { role: 'user', parts: [{ text: finalPromptText }] }
         ]
       });
 
