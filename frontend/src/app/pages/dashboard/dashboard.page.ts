@@ -6,7 +6,6 @@ import { TransactionService, TransactionSummary, Transaction } from '../../servi
 import { CategoryService, Category } from '../../services/category.service';
 import { AiService } from '../../services/ai.service';
 
-
 import localePt from '@angular/common/locales/pt';
 registerLocaleData(localePt);
 
@@ -28,12 +27,27 @@ export class DashboardPage implements OnInit {
   
   currentFilter: 'ALL' | 'INCOME' | 'EXPENSE' = 'ALL';
 
+  // CONTROLE MENSAL (Renovação da Dashboard)
+  selectedMonth: number = new Date().getMonth() + 1; // 1 a 12
+  selectedYear: number = new Date().getFullYear();
+  
+  // Campo que conecta com o DatePicker (input type="month")
+  selectedDate: string = new Date().toLocaleDateString('en-CA'); // 'en-CA' gera a string no formato YYYY-MM-DD de forma limpa
+  // CONVERTE O VISUAL PARA DD/MM/AAAA (Padrão Brasileiro)
+  get formattedBrDate(): string {
+    if (!this.selectedDate) return 'DD/MM/AAAA';
+    const [year, month, day] = this.selectedDate.split('-');
+    return `${day}/${month}/${year}`;
+  }
+
   transactionForm: FormGroup;
   categoryForm: FormGroup;
 
   loading: boolean = false;
   showCategoryModal: boolean = false;
   showBankModal: boolean = false;
+
+  selectedCategoryForEdit: Category | null = null;
 
   showAiChat: boolean = false;
   aiPrompt: string = '';
@@ -42,7 +56,6 @@ export class DashboardPage implements OnInit {
     { sender: 'ai', text: 'Olá! Sou o FinAI, seu assistente. Pode me perguntar se você pode fazer uma compra ou se o seu orçamento aguenta!' }
   ];
 
-
   constructor(
     private authService: AuthService,
     private transactionService: TransactionService,
@@ -50,13 +63,15 @@ export class DashboardPage implements OnInit {
     private aiService: AiService,
     private fb: FormBuilder
   ) {
+    // CORREÇÃO: categoryId inicializa vazio, sem a string 'null'
     this.transactionForm = this.fb.group({
       description: ['', [Validators.required, Validators.minLength(3)]],
       amount: ['', [Validators.required, Validators.min(0.01)]],
       type: ['EXPENSE', [Validators.required]],
-      paymentMethod: ['PIX'],
+      paymentMethod: ['PIX', Validators.required],
       bank: ['Nubank'],
-      categoryId: ['']
+      categoryId: [''],
+      installments: [1, [Validators.min(1), Validators.max(24)]]
     });
 
     this.categoryForm = this.fb.group({
@@ -74,16 +89,36 @@ export class DashboardPage implements OnInit {
     this.loadCategories();
   }
 
+  // AÇÃO DO DATEPICKER: Chamada quando o usuário seleciona Mês/Ano no calendário
+  // AÇÃO DO DATEPICKER: Chamada quando o usuário seleciona uma data completa (Dia, Mês e Ano)
+  onDateChange(): void {
+    if (!this.selectedDate) return;
+    
+    const parts = this.selectedDate.split('-');
+    if (parts.length === 3) {
+      this.selectedYear = parseInt(parts[0], 10);
+      this.selectedMonth = parseInt(parts[1], 10);
+      
+      // Recarrega a Dashboard para a nova data
+      this.loadDashboardData();
+    }
+  }
+  
+  // BUSCA DADOS FILTRADOS PELO MÊS/ANO SELECIONADO
   loadDashboardData(): void {
-    this.transactionService.getSummary().subscribe({
+    this.transactionService.getSummary(this.selectedMonth, this.selectedYear).subscribe({
       next: (data) => this.summary = data,
       error: (err) => console.error('Erro ao buscar resumo:', err)
     });
 
-    this.transactionService.getTransactions().subscribe({
+    this.transactionService.getTransactions(this.selectedMonth, this.selectedYear).subscribe({
       next: (data) => this.transactions = data,
       error: (err) => console.error('Erro ao buscar transações:', err)
     });
+  }
+
+  onMonthChange(): void {
+    this.loadDashboardData();
   }
 
   loadCategories(): void {
@@ -93,17 +128,31 @@ export class DashboardPage implements OnInit {
     });
   }
 
-  // === EXCLUSÃO DE CATEGORIA ===
   onDeleteCategory(id: string): void {
     if (confirm('Tem certeza que deseja excluir esta categoria? As transações antigas não serão apagadas, mas ficarão "Sem categoria".')) {
       this.categoryService.deleteCategory(id).subscribe({
         next: () => {
           this.loadCategories();
-          this.loadDashboardData(); // Recarrega para atualizar a lista
+          this.loadDashboardData();
         },
         error: (err) => alert('Erro ao excluir categoria: ' + err.message)
       });
     }
+  }
+
+  openEditCategoryModal(category: Category): void {
+    this.selectedCategoryForEdit = category;
+    this.categoryForm.patchValue({
+      name: category.name,
+      budgetLimit: category.budgetLimit || ''
+    });
+    this.showCategoryModal = true;
+  }
+
+  closeCategoryModal(): void {
+    this.showCategoryModal = false;
+    this.selectedCategoryForEdit = null;
+    this.categoryForm.reset();
   }
 
   setTransactionType(type: 'INCOME' | 'EXPENSE'): void {
@@ -136,7 +185,6 @@ export class DashboardPage implements OnInit {
   }
 
   onAddTransaction(): void {
-    // 1. AVISO DE ERRO NO FORMULÁRIO
     if (this.transactionForm.invalid) {
       const controls = this.transactionForm.controls;
       let camposInvalidos = [];
@@ -157,26 +205,28 @@ export class DashboardPage implements OnInit {
       type: formValue.type,
       paymentMethod: this.isExpense ? formValue.paymentMethod : undefined,
       bank: formValue.bank || undefined,
-      categoryId: formValue.categoryId ? formValue.categoryId : undefined,
-      date: new Date().toISOString()
+      categoryId: (this.isExpense && formValue.categoryId && formValue.categoryId !== '') ? formValue.categoryId : undefined,
+      date: new Date().toISOString(),
+      installments: (this.isExpense && formValue.paymentMethod === 'CREDIT') 
+        ? Number(formValue.installments) 
+        : 1
     };
 
     this.transactionService.createTransaction(payload).subscribe({
       next: () => {
         this.loading = false;
-        // Mantém a data de hoje, zera descrição e valor, mas lembra o banco e o tipo.
         this.transactionForm.reset({ 
           type: formValue.type, 
           paymentMethod: 'PIX', 
           bank: formValue.bank || 'Nubank',
-          categoryId: '' 
+          categoryId: '',
+          installments: 1
         });
         this.loadDashboardData();
         this.loadCategories();
       },
       error: (err) => {
         this.loading = false;
-        // 2. AVISO DE ERRO DO BACKEND
         const errorMessage = err.error?.message || err.message;
         alert('❌ Erro no Servidor ao salvar: ' + errorMessage);
       }
@@ -195,14 +245,24 @@ export class DashboardPage implements OnInit {
       budgetLimit: val.budgetLimit ? Number(val.budgetLimit) : undefined
     };
 
-    this.categoryService.createCategory(payload).subscribe({
-      next: () => {
-        this.categoryForm.reset();
-        this.showCategoryModal = false;
-        this.loadCategories();
-      },
-      error: (err) => alert('Erro ao criar categoria: ' + err.message)
-    });
+    if (this.selectedCategoryForEdit) {
+      this.categoryService.updateCategory(this.selectedCategoryForEdit.id, payload).subscribe({
+        next: () => {
+          this.closeCategoryModal();
+          this.loadCategories();
+          this.loadDashboardData();
+        },
+        error: (err) => alert('Erro ao atualizar categoria: ' + err.message)
+      });
+    } else {
+      this.categoryService.createCategory(payload).subscribe({
+        next: () => {
+          this.closeCategoryModal();
+          this.loadCategories();
+        },
+        error: (err) => alert('Erro ao criar categoria: ' + err.message)
+      });
+    }
   }
 
   addBank(name: string): void {
@@ -239,8 +299,6 @@ export class DashboardPage implements OnInit {
       },
       error: (err) => {
         console.error('Erro na IA:', err);
-        
-        // Tratamento elegante para o limite de requisições (Erro 429)
         if (err.status === 429) {
           this.chatMessages.push({ 
             sender: 'ai', 
@@ -252,10 +310,8 @@ export class DashboardPage implements OnInit {
             text: 'Ops! Ocorreu um erro ao consultar o assistente. Tente novamente em instantes.' 
           });
         }
-        
         this.aiLoading = false;
       }
     });
   }
-
 }

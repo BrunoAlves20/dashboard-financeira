@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 import { PaymentMethod, TransactionType } from '@prisma/client';
 
 export class CreateTransactionDto {
@@ -31,4 +31,10 @@ export class CreateTransactionDto {
 
   @IsOptional()
   installmentsCount?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(24)
+  installments?: number;
 }

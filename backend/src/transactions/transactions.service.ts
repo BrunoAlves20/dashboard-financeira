@@ -7,35 +7,87 @@ import { UpdateTransactionDto } from './dto/update-transaction.dto';
 export class TransactionsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createTransactionDto: CreateTransactionDto, userId: string) {
-    const { categoryId, date, ...data } = createTransactionDto;
+  async create(userId: string, dto: CreateTransactionDto) {
+    const installments = dto.installments && dto.installments > 1 ? dto.installments : 1;
+    const isCreditCard = dto.paymentMethod === 'CREDIT';
 
-    return this.prisma.transaction.create({
+    // Trata categoryId vazia ou 'null' enviada pelo front
+    const categoryId = (dto.categoryId && dto.categoryId !== 'null' && dto.categoryId !== '') 
+      ? dto.categoryId 
+      : null;
+
+    if (isCreditCard && installments > 1) {
+      const installmentAmount = Number((dto.amount / installments).toFixed(2));
+      const baseDate = dto.date ? new Date(dto.date) : new Date();
+      const transactionsToCreate = [];
+
+      for (let i = 0; i < installments; i++) {
+        const currentDate = new Date(baseDate);
+        
+        // Ajuste seguro de adição de mês
+        const targetMonth = baseDate.getMonth() + i;
+        currentDate.setMonth(targetMonth);
+        
+        // Se o dia estourar o mês de destino (ex: 31/jan -> fev), ajusta para o último dia útil do mês
+        if (currentDate.getMonth() !== targetMonth % 12) {
+          currentDate.setDate(0); 
+        }
+
+        transactionsToCreate.push({
+          userId,
+          title: `${dto.title} (${i + 1}/${installments})`,
+          amount: installmentAmount,
+          type: dto.type,
+          paymentMethod: dto.paymentMethod,
+          bank: dto.bank,
+          categoryId,
+          date: currentDate,
+        });
+      }
+
+      return await this.prisma.transaction.createMany({
+        data: transactionsToCreate,
+      });
+    }
+
+    return await this.prisma.transaction.create({
       data: {
-        ...data,
-        date: date ? new Date(date) : new Date(),
         userId,
-        ...(categoryId ? { categoryId } : {}),
+        title: dto.title,
+        amount: dto.amount,
+        type: dto.type,
+        paymentMethod: dto.paymentMethod,
+        bank: dto.bank,
+        categoryId,
+        date: dto.date ? new Date(dto.date) : new Date(),
       },
     });
   }
 
-  async findAllByUser(userId: string) {
+  // BUSCA APENAS TRANSAÇÕES DO MÊS/ANO SELECIONADO
+  async findAllByUser(userId: string, month?: number, year?: number) {
+    const whereCondition: any = { userId };
+
+    if (month !== undefined && year !== undefined) {
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0, 23, 59, 59);
+
+      whereCondition.date = {
+        gte: startDate,
+        lte: endDate,
+      };
+    }
+
     return this.prisma.transaction.findMany({
-      where: { userId },
-      include: {
-        category: true,
-      },
-      orderBy: {
-        date: 'desc',
-      },
+      where: whereCondition,
+      include: { category: true },
+      orderBy: { date: 'desc' },
     });
   }
 
-  async getSummary(userId: string) {
-    const transactions = await this.prisma.transaction.findMany({
-      where: { userId },
-    });
+  // RESUMO ZERADO/RENOVADO MENSALMENTE
+  async getSummary(userId: string, month?: number, year?: number) {
+    const transactions = await this.findAllByUser(userId, month, year);
 
     const incomes = transactions
       .filter((t) => t.type === 'INCOME')
@@ -45,10 +97,8 @@ export class TransactionsService {
       .filter((t) => t.type === 'EXPENSE')
       .reduce((acc, t) => acc + t.amount, 0);
 
-    const balance = incomes - expenses;
-
     return {
-      balance,
+      balance: incomes - expenses,
       incomes,
       expenses,
     };

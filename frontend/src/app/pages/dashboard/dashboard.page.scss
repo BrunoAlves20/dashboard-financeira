@@ -1,0 +1,20 @@
+/* Ajusta o input date para o Tema Escuro e MÁSCARA BRASILEIRA */
+input[type="date"] {
+  color-scheme: dark;
+  
+  /* Garante o cursor correto e alinhamento */
+  &::-webkit-datetime-edit {
+    padding: 0;
+  }
+  
+  /* Deixa o ícone do calendário roxo/iluminado e muito fácil de clicar */
+  &::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: invert(0.6) sepia(1) saturate(5) hue-rotate(200deg);
+    opacity: 0.9;
+    
+    &:hover {
+      opacity: 1;
+    }
+  }
+}

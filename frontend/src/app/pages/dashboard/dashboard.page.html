@@ -1,7 +1,9 @@
 <div class="min-h-screen bg-slate-950 text-slate-50 relative">
   
   <!-- BARRA DE NAVEGAÇÃO -->
-  <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center">
+  <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+    
+    <!-- LADO ESQUERDO: LOGO E NOME -->
     <div class="flex items-center gap-3">
       <div class="h-10 w-10 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-xl shadow-lg shadow-indigo-600/20">
         $
@@ -12,11 +14,43 @@
       </div>
     </div>
 
-    <div class="flex items-center gap-4">
-      <button (click)="handleLogout()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-sm font-medium border border-slate-700/50 transition-all duration-200">
-        Sair da Conta
+    <!-- LADO DIREITO: SELETOR DE MÊS/ANO E BOTÃO DE SAIR -->
+    <div class="flex items-center gap-3">
+      <!-- Filtro de Período -->
+      <!-- Filtro de Período Formatado no Padrão BR (DD/MM/AAAA) -->
+      <div class="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 shadow-inner relative group">
+        <!-- Ícone de Calendário Roxo/Iluminado -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        
+        <span class="text-xs text-slate-400 font-medium hidden sm:inline">Período:</span>
+        
+        <!-- Exibição Visual Formatada em DD/MM/AAAA -->
+        <span class="text-xs font-semibold text-white pointer-events-none">
+          {{ formattedBrDate }}
+        </span>
+
+        <!-- Input Oculto mas Clicável sobre o Texto (Abre o Calendário) -->
+        <input 
+          type="date" 
+          [(ngModel)]="selectedDate" 
+          (change)="onDateChange()"
+          class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+        />
+      </div>
+
+      <!-- Botão de Logout -->
+      <button 
+        (click)="handleLogout()" 
+        class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-sm font-medium border border-slate-700/50 transition-all duration-200 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+        <span>Sair</span>
       </button>
     </div>
+
   </header>
 
   <!-- CONTEÚDO PRINCIPAL -->
@@ -70,23 +104,30 @@
         <p class="text-xs text-slate-500 italic">Nenhuma categoria cadastrada. Clique em "+ Criar Categoria" para personalizar.</p>
       } @else {
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          @for (cat of categories; track cat.id) {
-            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 space-y-2 group relative">
-              
-              <!-- Cabeçalho do Card e Lixeira -->
-              <div class="flex justify-between items-start">
-                <div>
-                  <span class="text-xs font-bold text-white block">{{ cat.name }}</span>
-                  <span class="text-[10px] text-slate-400">
-                    {{ cat.budgetLimit ? (cat.budgetLimit | currency:'BRL':'symbol':'1.0-0':'pt-BR') : 'Sem limite' }}
-                  </span>
-                </div>
-                <!-- NOVO: Botão de Lixeira (só aparece ao passar o mouse) -->
+         @for (cat of categories; track cat.id) {
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 space-y-2 group relative">
+            <!-- Cabeçalho do Card e Ações (Editar e Excluir) -->
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-xs font-bold text-white block">{{ cat.name }}</span>
+                <span class="text-[10px] text-slate-400">
+                  {{ cat.budgetLimit ? (cat.budgetLimit | currency:'BRL':'symbol':'1.0-0':'pt-BR') : 'Sem limite' }}
+                </span>
+              </div>
+              <!-- AÇÕES: Botões de Editar e Lixeira -->
+              <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-all">
+                <!-- NOVO: Botão de Editar (Lápis) -->
+                <button (click)="openEditCategoryModal(cat)" title="Editar categoria"
+                  class="text-slate-500 hover:text-indigo-400 text-sm p-1 rounded-md hover:bg-indigo-500/10">
+                  ✏️
+                </button>
+                <!-- Botão de Lixeira -->
                 <button (click)="onDeleteCategory(cat.id)" title="Excluir categoria"
-                  class="text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all text-sm p-1 rounded-md hover:bg-red-500/10">
+                  class="text-slate-500 hover:text-red-400 text-sm p-1 rounded-md hover:bg-red-500/10">
                   🗑️
                 </button>
               </div>
+            </div>
 
               <!-- Valores da Categoria -->
               <div class="text-sm font-semibold" [ngClass]="(cat.budgetLimit && (cat.totalSpent || 0) > cat.budgetLimit) ? 'text-red-400' : 'text-slate-300'">
@@ -175,21 +216,25 @@
             <input formControlName="description" type="text" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white" placeholder="Ex: Salário, Saia no Shopping, Mercado">
           </div>
 
-          <<!-- Valor e Categoria -->
+          <!-- Valor e Categoria -->
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="text-xs font-medium text-slate-400 block mb-1">Valor (R$)</label>
               <input formControlName="amount" type="number" step="0.01" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white" placeholder="0,00">
             </div>
-            <div>
-              <label class="text-xs font-medium text-slate-400 block mb-1">Categoria</label>
-              <select formControlName="categoryId" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white">
-                <option value="">Sem Categoria</option>
-                @for (cat of categories; track cat.id) {
-                  <option [value]="cat.id">{{ cat.name }}</option>
-                }
-              </select>
-            </div>
+            
+            <!-- Categoria: Oculta automaticamente se NÃO for despesa (ou seja, se for Entrada) -->
+            @if (isExpense) {
+              <div>
+                <label class="text-xs font-medium text-slate-400 block mb-1">Categoria</label>
+                <select formControlName="categoryId" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white">
+                  <option value="">Sem Categoria</option>
+                  @for (cat of categories; track cat.id) {
+                    <option [value]="cat.id">{{ cat.name }}</option>
+                  }
+                </select>
+              </div>
+            }
           </div>
 
           <!-- Banco e Pagamento -->
@@ -206,7 +251,7 @@
               </select>
             </div>
 
-            <!-- Só aparece se for SAÍDA -->
+            <!-- Só aparece se for SAÍDA (isExpense) -->
             @if (isExpense) {
               <div>
                 <label class="text-xs font-medium text-slate-400 block mb-1">Forma de Pagamento</label>
@@ -220,7 +265,22 @@
               </div>
             }
           </div>
-
+          <!-- CAMPO DE PARCELAS' -->
+          @if (isExpense && transactionForm.get('paymentMethod')?.value === 'CREDIT') {
+            <div class="mt-3">
+              <label class="text-xs font-medium text-slate-400 block mb-1">Número de Parcelas</label>
+              <select formControlName="installments" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white">
+                <option [value]="1">1x (À vista no crédito)</option>
+                <option [value]="2">2x</option>
+                <option [value]="3">3x</option>
+                <option [value]="4">4x</option>
+                <option [value]="5">5x</option>
+                <option [value]="6">6x</option>
+                <option [value]="10">10x</option>
+                <option [value]="12">12x</option>
+              </select>
+            </div>
+          }
           <button type="submit" [disabled]="loading" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm rounded-xl transition-all shadow-lg shadow-indigo-600/20 disabled:opacity-50">
             {{ loading ? 'Salvando...' : 'Confirmar Lançamento' }}
           </button>

@@ -37,4 +37,8 @@ export class CategoryService {
   deleteCategory(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
   }
+  
+  updateCategory(id: string, categoryData: { name: string; budgetLimit?: number }): Observable<Category> {
+    return this.http.put<Category>(`${this.apiUrl}/categories/${id}`, categoryData);
+  }
 }

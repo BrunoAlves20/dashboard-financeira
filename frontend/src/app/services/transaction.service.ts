@@ -36,12 +36,20 @@ export class TransactionService {
     });
   }
 
-  getSummary(): Observable<TransactionSummary> {
-    return this.http.get<TransactionSummary>(`${this.apiUrl}/summary`, { headers: this.getHeaders() });
+  getSummary(month?: number, year?: number): Observable<TransactionSummary> {
+    let params: any = {};
+    if (month && year) {
+      params = { month, year };
+    }
+    return this.http.get<TransactionSummary>(`${this.apiUrl}/summary`, { params });
   }
 
-  getTransactions(): Observable<Transaction[]> {
-    return this.http.get<Transaction[]>(this.apiUrl, { headers: this.getHeaders() });
+  getTransactions(month?: number, year?: number): Observable<Transaction[]> {
+    let params: any = {};
+    if (month && year) {
+      params = { month, year };
+    }
+    return this.http.get<Transaction[]>(this.apiUrl, { params });
   }
 
   createTransaction(transaction: {
