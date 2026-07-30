@@ -1,12 +1,17 @@
-import { ApplicationConfig } from '@angular/core';
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http'; // <-- IMPORTAÇÃO NOVA
+import { provideHttpClient, withFetch } from '@angular/common/http'; // <-- IMPORTAÇÃO NOVA
 
 import { routes } from './app.routes';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient() // <-- HABILITA AS REQUISIÇÕES HTTP NO APP
+    provideHttpClient(withFetch()),
+    
+    // REGISTRO DOS GRÁFICOS NO ANGULAR
+    provideCharts(withDefaultRegisterables())
   ]
 };
