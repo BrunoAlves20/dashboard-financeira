@@ -2,10 +2,59 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class TransactionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailerService: MailerService
+  ) {}
+
+  // VERIFICAÇÃO DE ESTOURO DE CATEGORIA
+  private async checkCategoryAlert(userId: string, categoryId: string) {
+    const category = await this.prisma.category.findUnique({
+      where: { id: categoryId },
+    });
+
+    if (!category || !category.budgetLimit) return;
+
+    // Soma os gastos acumulados nesta categoria no mês atual
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+    const totalSpentResult = await this.prisma.transaction.aggregate({
+      where: {
+        userId,
+        categoryId,
+        type: 'EXPENSE',
+        date: { gte: startOfMonth, lte: endOfMonth },
+      },
+      _sum: { amount: true },
+    });
+
+    const totalSpent = totalSpentResult._sum.amount || 0;
+
+    // Se ultrapassou o limite, envia o e-mail de alerta!
+    if (totalSpent > category.budgetLimit) {
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      if (user && user.email) {
+        this.mailerService.sendMail({
+          to: user.email,
+          subject: `⚠️ Alerta de Gastos: Categoria ${category.name}`,
+          html: `
+            <h3>Atenção, ${user.name}!</h3>
+            <p>Você ultrapassou o limite estipulado para a categoria <strong>${category.name}</strong>.</p>
+            <p><strong>Limite Configurado:</strong> R$ ${category.budgetLimit.toFixed(2)}</p>
+            <p><strong>Total Gasto:</strong> R$ ${totalSpent.toFixed(2)}</p>
+            <br/>
+            <p>Acesse sua Dashboard para reavaliar seu planejamento mensal.</p>
+          `,
+        }).catch(err => console.error('Erro ao enviar e-mail de alerta:', err));
+      }
+    }
+  }
 
   async create(userId: string, dto: CreateTransactionDto) {
     const installments = dto.installments && dto.installments > 1 ? dto.installments : 1;
@@ -16,6 +65,8 @@ export class TransactionsService {
       ? dto.categoryId 
       : null;
 
+    let createdResult: any;
+
     if (isCreditCard && installments > 1) {
       const installmentAmount = Number((dto.amount / installments).toFixed(2));
       const baseDate = dto.date ? new Date(dto.date) : new Date();
@@ -24,11 +75,9 @@ export class TransactionsService {
       for (let i = 0; i < installments; i++) {
         const currentDate = new Date(baseDate);
         
-        // Ajuste seguro de adição de mês
         const targetMonth = baseDate.getMonth() + i;
         currentDate.setMonth(targetMonth);
         
-        // Se o dia estourar o mês de destino (ex: 31/jan -> fev), ajusta para o último dia útil do mês
         if (currentDate.getMonth() !== targetMonth % 12) {
           currentDate.setDate(0); 
         }
@@ -42,26 +91,35 @@ export class TransactionsService {
           bank: dto.bank,
           categoryId,
           date: currentDate,
+          isRecurring: dto.isRecurring || false,
         });
       }
 
-      return await this.prisma.transaction.createMany({
+      createdResult = await this.prisma.transaction.createMany({
         data: transactionsToCreate,
+      });
+    } else {
+      createdResult = await this.prisma.transaction.create({
+        data: {
+          userId,
+          title: dto.title,
+          amount: dto.amount,
+          type: dto.type,
+          paymentMethod: dto.paymentMethod,
+          bank: dto.bank,
+          categoryId,
+          date: dto.date ? new Date(dto.date) : new Date(),
+          isRecurring: dto.isRecurring || false,
+        },
       });
     }
 
-    return await this.prisma.transaction.create({
-      data: {
-        userId,
-        title: dto.title,
-        amount: dto.amount,
-        type: dto.type,
-        paymentMethod: dto.paymentMethod,
-        bank: dto.bank,
-        categoryId,
-        date: dto.date ? new Date(dto.date) : new Date(),
-      },
-    });
+    // Dispara a checagem de limite por e-mail após a criação
+    if (categoryId) {
+      this.checkCategoryAlert(userId, categoryId);
+    }
+
+    return createdResult;
   }
 
   // BUSCA APENAS TRANSAÇÕES DO MÊS/ANO SELECIONADO
@@ -88,7 +146,6 @@ export class TransactionsService {
   // BUSCA TRANSAÇÕES POR PERÍODO PERSONALIZADO (EXTRATOR)
   async findByCustomPeriod(userId: string, startDateStr: string, endDateStr: string) {
     const startDate = new Date(startDateStr);
-    // Ajusta o horário final para o último segundo do dia
     const endDate = new Date(endDateStr);
     endDate.setHours(23, 59, 59, 999);
 
@@ -108,7 +165,6 @@ export class TransactionsService {
       },
     });
 
-    // Calcula os totais do extrato fechado
     const totalIncomes = transactions
       .filter((t) => t.type === 'INCOME')
       .reduce((acc, t) => acc + t.amount, 0);

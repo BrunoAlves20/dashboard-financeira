@@ -60,6 +60,7 @@ model Transaction {
   paymentMethod  PaymentMethod   @default(PIX)
   bank           String?         // Ex: "Nubank", "Inter", "Itaú"
   date           DateTime        @default(now())
+  isRecurring    Boolean    @default(false)
   
   // Suporte a Parcelamento no Crédito
   installmentsCount   Int        @default(1) // Quantas vezes foi parcelado (Ex: 3x)

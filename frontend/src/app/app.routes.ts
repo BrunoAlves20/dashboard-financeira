@@ -14,6 +14,7 @@ export const routes: Routes = [
   { path: 'extrato', component: ExtratoPage, canActivate: [authGuard] },
   { path: 'graficos', component: GraficosPage, canActivate: [authGuard] },
   { path: 'perfil', component: PerfilPage, canActivate: [authGuard] },
+  {path: 'metas', loadComponent: () => import('./pages/metas/metas.page').then(m => m.MetasPage), canActivate: [authGuard]},
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: '**', redirectTo: '/login' }
 ];

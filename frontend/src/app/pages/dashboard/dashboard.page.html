@@ -46,6 +46,13 @@
           <span>Gráficos</span>
         </a>
 
+        <a routerLink="/metas" routerLinkActive="bg-indigo-600 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span>Metas</span>
+        </a>
+
         <!-- Perfil -->
         <a routerLink="/perfil" routerLinkActive="bg-indigo-600 text-white" 
           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
@@ -229,7 +236,7 @@
                 <div class="flex items-center gap-4">
                   <div class="text-right">
                     <span class="text-sm font-bold block" [ngClass]="item.type === 'INCOME' ? 'text-emerald-400' : 'text-red-400'">
-                      {{ item.type === 'INCOME' ? '+' : '-' }} {{ item.amount | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+                      {{ item.type === 'INCOME' ? '+' : '-' }} {{ (item.amount || 0) | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
                     </span>
                     <span class="text-[10px] text-slate-500">{{ item.date | date:'dd/MM/yyyy' }}</span>
                   </div>
@@ -248,6 +255,7 @@
         <h4 class="text-md font-bold mb-4 flex items-center gap-2">
           <span class="text-lg">➕</span> Nova Transação
         </h4>
+        
         
         <form [formGroup]="transactionForm" (ngSubmit)="onAddTransaction()" class="space-y-4">
           <!-- Botões Entrada / Saída -->
@@ -328,6 +336,19 @@
               </select>
             </div>
           }
+
+          <!-- CHECKBOX DE RECORRÊNCIA (AQUI DENTRO DO FORM) -->
+          <div class="flex items-center gap-2 pt-1 pb-2">
+            <input 
+              type="checkbox" 
+              id="isRecurring" 
+              formControlName="isRecurring"
+              class="w-4 h-4 text-indigo-600 bg-slate-950 border-slate-800 rounded focus:ring-indigo-500 cursor-pointer"
+            />
+            <label for="isRecurring" class="text-xs text-slate-300 font-medium cursor-pointer">
+              🔄 Lançamento Recorrente (Repetir todo mês)
+            </label>
+          </div>
 
           <button type="submit" [disabled]="loading" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm rounded-xl transition-all shadow-lg shadow-indigo-600/20 disabled:opacity-50">
             {{ loading ? 'Salvando...' : 'Confirmar Lançamento' }}
