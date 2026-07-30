@@ -7,12 +7,13 @@ import { CategoryService, Category } from '../../services/category.service';
 import { AiService } from '../../services/ai.service';
 
 import localePt from '@angular/common/locales/pt';
+import { RouterModule } from '@angular/router';
 registerLocaleData(localePt);
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
   templateUrl: './dashboard.page.html',
   styleUrl: './dashboard.page.scss'
 })

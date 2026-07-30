@@ -52,6 +52,13 @@ export class TransactionService {
     return this.http.get<Transaction[]>(this.apiUrl, { params });
   }
 
+  // Busca o extrato do período fechado
+  getStatement(startDate: string, endDate: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/statement`, {
+      params: { startDate, endDate }
+    });
+  }
+
   createTransaction(transaction: {
     title: string;
     amount: number;

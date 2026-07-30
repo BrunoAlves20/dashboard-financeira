@@ -36,4 +36,14 @@ export class TransactionsController {
   remove(@Param('id') id: string, @GetUser('id') userId: string) {
     return this.transactionsService.remove(id, userId);
   }
+
+  // ROTA DO EXTRATOR: GET /transactions/statement?startDate=2026-06-05&endDate=2026-07-04
+  @Get('statement')
+  getStatement(
+    @GetUser('id') userId: string,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    return this.transactionsService.findByCustomPeriod(userId, startDate, endDate);
+  }
 }

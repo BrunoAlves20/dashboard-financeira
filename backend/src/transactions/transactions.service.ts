@@ -85,6 +85,48 @@ export class TransactionsService {
     });
   }
 
+  // BUSCA TRANSAÇÕES POR PERÍODO PERSONALIZADO (EXTRATOR)
+  async findByCustomPeriod(userId: string, startDateStr: string, endDateStr: string) {
+    const startDate = new Date(startDateStr);
+    // Ajusta o horário final para o último segundo do dia
+    const endDate = new Date(endDateStr);
+    endDate.setHours(23, 59, 59, 999);
+
+    const transactions = await this.prisma.transaction.findMany({
+      where: {
+        userId,
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      include: {
+        category: true,
+      },
+      orderBy: {
+        date: 'desc',
+      },
+    });
+
+    // Calcula os totais do extrato fechado
+    const totalIncomes = transactions
+      .filter((t) => t.type === 'INCOME')
+      .reduce((acc, t) => acc + t.amount, 0);
+
+    const totalExpenses = transactions
+      .filter((t) => t.type === 'EXPENSE')
+      .reduce((acc, t) => acc + t.amount, 0);
+
+    return {
+      startDate,
+      endDate,
+      totalIncomes,
+      totalExpenses,
+      balance: totalIncomes - totalExpenses,
+      transactions,
+    };
+  }
+
   // RESUMO ZERADO/RENOVADO MENSALMENTE
   async getSummary(userId: string, month?: number, year?: number) {
     const transactions = await this.findAllByUser(userId, month, year);
