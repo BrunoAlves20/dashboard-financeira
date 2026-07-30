@@ -84,35 +84,45 @@
   <main class="flex-1 p-6 space-y-6 overflow-y-auto">
     
     <!-- BARRA SUPERIOR (SAUDAÇÃO E FILTRO DE DATA BR) -->
-    <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-slate-900 p-4 rounded-2xl border border-slate-800">
+    <header data-step="1" data-intro="Bem-vindo ao FinAI! 🚀 Este é o painel central onde você tem a visão geral e total controle da sua vida financeira."
+      class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-slate-900 p-4 rounded-2xl border border-slate-800">
       <div>
         <h2 class="text-lg font-bold tracking-tight text-white">Painel Principal</h2>
         <p class="text-xs text-slate-400">Olá, <span class="text-indigo-400 font-semibold">{{ userName }}</span> 👋</p>
       </div>
 
-      <!-- SELETOR DE PERÍODO (PADRÃO DD/MM/AAAA) -->
-      <div class="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 shadow-inner relative group w-fit">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        
-        <span class="text-xs text-slate-400 font-medium hidden sm:inline">Período:</span>
-        
-        <span class="text-xs font-semibold text-white pointer-events-none">
-          {{ formattedBrDate }}
-        </span>
+      <div class="flex items-center gap-3">
+        <!-- BOTÃO DE REINICIAR TOUR -->
+        <button (click)="restartTour()" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 border border-indigo-500/30 px-3 py-1.5 rounded-xl bg-indigo-500/10 transition-all">
+          💡 Como funciona?
+        </button>
 
-        <input 
-          type="date" 
-          [(ngModel)]="selectedDate" 
-          (change)="onDateChange()"
-          class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
-        />
+        <!-- SELETOR DE PERÍODO (PADRÃO DD/MM/AAAA) -->
+        <div data-step="2" data-intro="Aqui você navega no tempo! Filtre os dados escolhendo o mês e ano que deseja analisar."
+          class="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 shadow-inner relative group w-fit">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          
+          <span class="text-xs text-slate-400 font-medium hidden sm:inline">Período:</span>
+          
+          <span class="text-xs font-semibold text-white pointer-events-none">
+            {{ formattedBrDate }}
+          </span>
+
+          <input 
+            type="date" 
+            [(ngModel)]="selectedDate" 
+            (change)="onDateChange()"
+            class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+          />
+        </div>
       </div>
     </header>
 
     <!-- GRID DE CARDS DE RESUMO -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div data-step="3" data-intro="Fique de olho nestes três cards! Eles calculam automaticamente o seu Saldo atual, o total de Entradas e as Saídas acumuladas no mês." 
+      class="grid grid-cols-1 md:grid-cols-3 gap-6">
       
       <!-- CARD: SALDO ATUAL -->
       <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl relative overflow-hidden group">
@@ -144,7 +154,8 @@
     </div>
 
     <!-- SEÇÃO DE CATEGORIAS -->
-    <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
+    <div data-step="4" data-intro="Crie categorias personalizadas (como Mercado, Lazer, Educação). Você pode definir Limites Mensais e o sistema te avisa caso os gastos ultrapassem o valor definido!"
+      class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
       <div class="flex justify-between items-center mb-4">
         <div>
           <h4 class="text-md font-bold">Minhas Categorias</h4>
@@ -206,7 +217,8 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
       <!-- ESQUERDA: LISTA DE TRANSAÇÕES -->
-      <div class="lg:col-span-2 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
+      <div data-step="5" data-intro="Este é o seu mini-extrato. Filtre facilmente os lançamentos por entradas ou saídas e exclua caso tenha registrado algo errado."
+        class="lg:col-span-2 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <h4 class="text-md font-bold">Últimas Transações</h4>
           <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800/80 w-fit">
@@ -251,7 +263,8 @@
       </div>
       
       <!-- DIREITA: FORMULÁRIO DE CADASTRO -->
-      <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl h-fit">
+      <div data-step="6" data-intro="Onde a mágica acontece! Use este formulário para lançar rapidamente receitas e despesas. Você pode gerenciar bancos, criar repetições mensais automáticas e até simular compras parceladas no cartão de crédito!"
+        class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl h-fit">
         <h4 class="text-md font-bold mb-4 flex items-center gap-2">
           <span class="text-lg">➕</span> Nova Transação
         </h4>
@@ -414,7 +427,8 @@
   </div>
   
   <!-- BOTÃO FLUTUANTE DA IA -->
-  <button (click)="showAiChat = !showAiChat" 
+  <button data-step="7" data-intro="Por último, mas não menos importante: o seu Consultor de Bolso! Você pode me chamar a qualquer momento para analisar seus gastos, pedir dicas ou perguntar se cabe uma nova despesa no orçamento. Aproveite!"
+    (click)="showAiChat = !showAiChat" 
     class="fixed bottom-6 right-6 h-14 w-14 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl z-40 transition-all hover:scale-110 active:scale-95">
     🤖
   </button>

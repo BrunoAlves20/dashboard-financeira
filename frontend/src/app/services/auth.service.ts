@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 
@@ -25,6 +25,14 @@ export class AuthService {
     private http: HttpClient,
     private router: Router
   ) {}
+
+  // Método auxiliar para pegar os headers com o token de autorização
+  private getHeaders(): HttpHeaders {
+    const token = this.getToken();
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+  }
 
   // 1. Método de Cadastro (Sign Up)
   register(name: string, email: string, password: string): Observable<any> {
@@ -61,5 +69,15 @@ export class AuthService {
   isLoggedIn(): boolean {
     // Se existir um token no localStorage, consideramos que está logado
     return !!this.getToken();
+  }
+
+  // 6. Atualizar Perfil (Novo)
+  updateProfile(name: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/users/me`, { name }, { headers: this.getHeaders() });
+  }
+
+  // 7. Deletar Conta (Novo)
+  deleteAccount(): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/users/me`, { headers: this.getHeaders() });
   }
 }

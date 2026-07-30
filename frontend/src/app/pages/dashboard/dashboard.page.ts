@@ -8,6 +8,7 @@ import { AiService } from '../../services/ai.service';
 import { RouterModule } from '@angular/router';
 
 import localePt from '@angular/common/locales/pt';
+import introJs from 'intro.js';
 registerLocaleData(localePt);
 
 @Component({
@@ -86,6 +87,11 @@ export class DashboardPage implements OnInit {
     }
     this.loadDashboardData();
     this.loadCategories();
+
+    // Dispara a checagem do tour com um leve delay para dar tempo da tela renderizar
+    setTimeout(() => {
+      this.checkAndStartTour();
+    }, 500);
   }
 
   onDateChange(): void {
@@ -112,7 +118,6 @@ export class DashboardPage implements OnInit {
 
     this.transactionService.getTransactions(this.selectedMonth, this.selectedYear).subscribe({
       next: (data) => {
-        // Converte o valor de cada transação de forma garantida para Number
         this.transactions = data.map(t => ({
           ...t,
           amount: Number(t.amount) || 0
@@ -310,5 +315,47 @@ export class DashboardPage implements OnInit {
         this.aiLoading = false;
       }
     });
+  } // <- Aqui estava faltando a chave de fechamento do sendAiQuery!
+
+  // Métodos do Onboarding (Intro.js)
+  checkAndStartTour(): void {
+    const hasSeenTour = localStorage.getItem('hasSeenTour');
+    
+    if (!hasSeenTour) {
+      const intro = introJs();
+      
+      intro.setOptions({
+        nextLabel: 'Próximo',
+        prevLabel: 'Anterior',
+        doneLabel: 'Entendi!',
+        showProgress: true,
+        showStepNumbers: false,
+        dontShowAgain: true,
+        dontShowAgainLabel: 'Não mostrar novamente',
+        dontShowAgainCookie: 'hasSeenTour'
+      });
+
+      intro.oncomplete(() => {
+        localStorage.setItem('hasSeenTour', 'true');
+      });
+
+      intro.onexit(() => {
+        localStorage.setItem('hasSeenTour', 'true');
+      });
+
+      intro.start();
+    }
+  }
+
+  restartTour(): void {
+    localStorage.removeItem('hasSeenTour');
+    const intro = introJs();
+    intro.setOptions({
+      nextLabel: 'Próximo',
+      prevLabel: 'Anterior',
+      doneLabel: 'Entendi!',
+      showProgress: true
+    });
+    intro.start();
   }
 }

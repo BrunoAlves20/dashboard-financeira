@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -17,7 +17,10 @@ export class PerfilPage implements OnInit {
   loading: boolean = false;
   successMessage: string = '';
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     const userJson = localStorage.getItem('user');
@@ -36,19 +39,48 @@ export class PerfilPage implements OnInit {
 
     this.loading = true;
     
-    // Atualiza os dados no LocalStorage (e no estado local)
-    const userJson = localStorage.getItem('user');
-    if (userJson) {
-      const user = JSON.parse(userJson);
-      user.name = this.userName;
-      localStorage.setItem('user', JSON.stringify(user));
-    }
+    // Envia o novo nome para o backend
+    this.authService.updateProfile(this.userName).subscribe({
+      next: (updatedUser) => {
+        this.loading = false;
+        
+        // Atualiza o LocalStorage com o nome novo
+        const userJson = localStorage.getItem('user');
+        if (userJson) {
+          const user = JSON.parse(userJson);
+          user.name = updatedUser.name;
+          localStorage.setItem('user', JSON.stringify(user));
+        }
 
-    setTimeout(() => {
-      this.loading = false;
-      this.successMessage = '✅ Perfil atualizado com sucesso!';
-      setTimeout(() => this.successMessage = '', 3000);
-    }, 500);
+        this.successMessage = '✅ Perfil atualizado com sucesso!';
+        setTimeout(() => this.successMessage = '', 3000);
+      },
+      error: (err) => {
+        this.loading = false;
+        alert('Erro ao atualizar perfil.');
+        console.error(err);
+      }
+    });
+  }
+
+  onDeleteAccount(): void {
+    const confirmDelete = confirm(
+      '⚠️ ATENÇÃO! Tem certeza que deseja excluir sua conta?\n\n' +
+      'Esta ação é irreversível e apagará TODAS as suas transações, categorias e dados pessoais permanentemente.'
+    );
+
+    if (confirmDelete) {
+      this.authService.deleteAccount().subscribe({
+        next: () => {
+          alert('Sua conta foi excluída com sucesso. Sentiremos sua falta!');
+          this.authService.logout();
+        },
+        error: (err) => {
+          alert('Ocorreu um erro ao tentar excluir a conta.');
+          console.error(err);
+        }
+      });
+    }
   }
 
   handleLogout(): void {

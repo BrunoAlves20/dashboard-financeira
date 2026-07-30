@@ -1,4 +1,4 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from '@prisma/client';
@@ -38,5 +38,34 @@ export class UsersService {
     return this.prisma.user.findUnique({
       where: { email },
     });
+  }
+
+  async findById(id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('Usuário não encontrado');
+    
+    // Remove a senha usando desestruturação
+    const { password: _, ...result } = user;
+    return result;
+  }
+
+  async update(id: string, updateData: { name: string }) {
+    const user = await this.prisma.user.update({
+      where: { id },
+      data: { name: updateData.name },
+    });
+    
+    // Remove a senha usando desestruturação
+    const { password: _, ...result } = user;
+    return result;
+  }
+
+  async remove(id: string) {
+    // 1. Apaga primeiro as dependências (Transações e Categorias) para evitar erro de chave estrangeira
+    await this.prisma.transaction.deleteMany({ where: { userId: id } });
+    await this.prisma.category.deleteMany({ where: { userId: id } });
+    
+    // 2. Apaga o usuário
+    return this.prisma.user.delete({ where: { id } });
   }
 }
