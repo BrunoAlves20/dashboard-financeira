@@ -33,6 +33,7 @@ graph TD
     Cat(Categorias & Limites)
     Chat(Assistente IA)
     end
+```
 
 ## 2. Instalação e Configuração
 
