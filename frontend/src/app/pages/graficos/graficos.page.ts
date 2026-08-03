@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
+import { driver } from 'driver.js';
 
 import { TransactionService, Transaction } from '../../services/transaction.service';
 import { CategoryService, Category } from '../../services/category.service';
@@ -19,7 +20,7 @@ registerLocaleData(localePt);
   templateUrl: './graficos.page.html',
   styleUrl: './graficos.page.scss'
 })
-export class GraficosPage implements OnInit {
+export class GraficosPage implements OnInit, AfterViewInit {
   userName: string = '';
   loading: boolean = false;
 
@@ -80,6 +81,14 @@ export class GraficosPage implements OnInit {
     this.loadChartData();
   }
 
+  ngAfterViewInit(): void {
+    const jaViu = localStorage.getItem('graficos_tutorial');
+    if (!jaViu) {
+      this.restartTour();
+      localStorage.setItem('graficos_tutorial', 'true');
+    }
+  }
+
   onDateChange(): void {
     if (!this.selectedDate) return;
     const parts = this.selectedDate.split('-');
@@ -113,7 +122,6 @@ export class GraficosPage implements OnInit {
         const bankMap: { [key: string]: number } = {};
 
         transactions.forEach(t => {
-          // Considera todas as despesas que possuem um banco atribuído (ou define 'Outros')
           if (t.type === 'EXPENSE') {
             const bankName = t.bank ? t.bank.trim() : 'Outros';
             const value = Number(t.amount) || 0;
@@ -161,5 +169,23 @@ export class GraficosPage implements OnInit {
 
   handleLogout(): void {
     this.authService.logout();
+  }
+
+  // MOTOR DO TOUR INTERATIVO (DRIVER.JS)
+  restartTour(): void {
+    const driverObj = driver({
+      showProgress: true,
+      animate: true,
+      nextBtnText: 'Próximo →',
+      prevBtnText: '← Anterior',
+      doneBtnText: 'Concluir',
+      steps: [
+        { popover: { title: 'Relatórios Visuais 📊', description: 'Analise o comportamento dos seus gastos através de gráficos dinâmicos.', align: 'center' } },
+        { element: '#grafico-categorias', popover: { title: 'Gastos por Categoria', description: 'Gráfico em rosca detalhando onde você investe ou gasta mais capital.', side: 'bottom', align: 'start' } },
+        { element: '#grafico-entradas-saidas', popover: { title: 'Entradas vs Saídas', description: 'Comparativo geral de receitas versus despesas no mês selecionado.', side: 'bottom', align: 'start' } },
+        { element: '#grafico-bancos', popover: { title: 'Despesas por Banco', description: 'Veja qual instituição ou cartão concentra o maior volume de saídas.', side: 'top', align: 'start' } }
+      ]
+    });
+    driverObj.drive();
   }
 }

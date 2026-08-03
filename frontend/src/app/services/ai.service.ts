@@ -10,8 +10,8 @@ export interface AiResponse {
   providedIn: 'root'
 })
 export class AiService {
-  // private apiUrl = 'http://localhost:3001/ai/ask';
-  private apiUrl = 'https://dashboard-financeira.onrender.com/ai/ask';
+  private apiUrl = 'http://localhost:3001/ai/ask';
+  // private apiUrl = 'https://dashboard-financeira.onrender.com/ai/ask';
 
   constructor(private http: HttpClient) {}
 

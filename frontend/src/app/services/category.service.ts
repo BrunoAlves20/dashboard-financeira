@@ -14,8 +14,8 @@ export interface Category {
   providedIn: 'root'
 })
 export class CategoryService {
-  // private apiUrl = 'http://localhost:3001/categories';
-  private apiUrl = 'https://dashboard-financeira.onrender.com/categories';
+  private apiUrl = 'http://localhost:3001/categories';
+  // private apiUrl = 'https://dashboard-financeira.onrender.com/categories';
 
   constructor(private http: HttpClient) {}
 

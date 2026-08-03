@@ -6,7 +6,7 @@ import { TransactionService, TransactionSummary, Transaction } from '../../servi
 import { CategoryService, Category } from '../../services/category.service';
 import { AiService } from '../../services/ai.service';
 import { RouterModule } from '@angular/router';
-
+import { driver } from 'driver.js';
 import localePt from '@angular/common/locales/pt';
 import introJs from 'intro.js';
 registerLocaleData(localePt);
@@ -92,6 +92,95 @@ export class DashboardPage implements OnInit {
     setTimeout(() => {
       this.checkAndStartTour();
     }, 500);
+  }
+  ngAfterViewInit() {
+    this.iniciarTutorial();
+  }
+
+  iniciarTutorial() {
+    // Verifica se o usuário já viu o tutorial
+    const jaViuTutorial = localStorage.getItem('dashboard_tutorial');
+    if (!jaViuTutorial) {
+      this.executarTour();
+    }
+  }
+
+  // Função chamada pelo botão "💡 Como funciona?"
+  restartTour() {
+    this.executarTour();
+  }
+
+  // Motor central do Tour (Driver.js)
+  private executarTour() {
+    const driverObj = driver({
+      showProgress: true,
+      animate: true,
+      nextBtnText: 'Próximo →',
+      prevBtnText: '← Anterior',
+      doneBtnText: 'Concluir',
+      steps: [
+        { 
+          popover: { 
+            title: 'Bem-vindo ao FinAI! 🚀', 
+            description: 'Este é o seu painel central. Vamos fazer um tour rápido para você conhecer todas as ferramentas.', 
+            align: 'center' 
+          } 
+        },
+        { 
+          element: '#saldo-card', 
+          popover: { 
+            title: 'Seu Saldo Atual', 
+            description: 'Aqui você visualiza o montante total disponível na sua conta de forma consolidada.', 
+            side: "bottom", 
+            align: 'start' 
+          }
+        },
+        { 
+          element: '#metas-card', 
+          popover: { 
+            title: 'Suas Entradas', 
+            description: 'Todas as suas receitas e aportes acumulados neste mês aparecem aqui.', 
+            side: "bottom", 
+            align: 'start' 
+          }
+        },
+        { 
+          element: '#graficos-card', 
+          popover: { 
+            title: 'Suas Saídas', 
+            description: 'O controle dos seus gastos. Fique de olho para não ultrapassar seus limites!', 
+            side: "bottom", 
+            align: 'start' 
+          }
+        },
+        { 
+          element: '#categorias-section', 
+          popover: { title: 'Categorias Inteligentes', description: 'Organize suas movimentações e defina limites mensais para receber alertas.', side: 'top', align: 'start' }
+        },
+        { 
+          element: '#transacoes-section', 
+          popover: { title: 'Extrato Rápido', description: 'Visualize os últimos lançamentos, filtre por entradas/saídas e exclua erros.', side: 'top', align: 'start' }
+        },
+        { 
+          element: '#form-section', 
+          popover: { title: 'Lançamentos', description: 'Onde a mágica acontece. Registre compras, crie parcelamentos no cartão e configure despesas recorrentes mensais.', side: 'left', align: 'start' }
+        },
+        { 
+          element: '#ai-button', 
+          popover: { title: 'Inteligência Artificial', description: 'Seu consultor financeiro particular! Clique aqui a qualquer momento para pedir análises sobre o seu saldo ou dicas de economia.', side: 'left', align: 'end' }
+        }
+      ],
+      onDestroyStarted: () => {
+        // Salva no localStorage quando o usuário termina ou fecha o tour
+        if (!driverObj.hasNextStep() || confirm("Deseja fechar o tutorial?")) {
+          driverObj.destroy();
+          localStorage.setItem('dashboard_tutorial', 'true');
+        }
+      },
+    });
+
+    // Inicia a execução do pop-up
+    driverObj.drive();
   }
 
   onDateChange(): void {
@@ -347,15 +436,4 @@ export class DashboardPage implements OnInit {
     }
   }
 
-  restartTour(): void {
-    localStorage.removeItem('hasSeenTour');
-    const intro = introJs();
-    intro.setOptions({
-      nextLabel: 'Próximo',
-      prevLabel: 'Anterior',
-      doneLabel: 'Entendi!',
-      showProgress: true
-    });
-    intro.start();
-  }
 }

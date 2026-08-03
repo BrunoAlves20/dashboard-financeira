@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TransactionService, Transaction } from '../../services/transaction.service';
 import { AuthService } from '../../services/auth.service';
+import { driver } from 'driver.js';
 
 import localePt from '@angular/common/locales/pt';
 registerLocaleData(localePt);
@@ -56,6 +57,23 @@ export class ExtratoPage implements OnInit {
     this.endDate = lastDay.toLocaleDateString('en-CA');
 
     this.loadStatement();
+  }
+
+  ngAfterViewInit() {
+    const jaViu = localStorage.getItem('extrato_tutorial');
+    if (!jaViu) {
+      this.restartTour();
+      localStorage.setItem('extrato_tutorial', 'true');
+    }
+  }
+
+  setDefaultDates() {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    this.startDate = `${year}-${month}-01`;
+    const lastDay = new Date(year, date.getMonth() + 1, 0).getDate();
+    this.endDate = `${year}-${month}-${lastDay}`;
   }
 
   // Busca o extrato do período selecionado
@@ -170,10 +188,27 @@ export class ExtratoPage implements OnInit {
           <script>
             window.onload = function() { window.print(); window.close(); };
           </script>
-        </body>
+        </body>F
       </html>
     `);
     printWindow.document.close();
+  }
+
+  restartTour() {
+    const driverObj = driver({
+      showProgress: true,
+      animate: true,
+      nextBtnText: 'Próximo →',
+      prevBtnText: '← Anterior',
+      doneBtnText: 'Concluir',
+      steps: [
+        { popover: { title: 'Extrator Detalhado 📄', description: 'Aqui você audita e filtra o histórico completo das suas finanças em um período específico.', align: 'center' } },
+        { element: '#extrato-filtros', popover: { title: 'Filtro por Período', description: 'Escolha a data de início e término para fechar o ciclo de análise que preferir.', side: 'bottom', align: 'start' } },
+        { element: '#btn-exportar', popover: { title: 'Exportar Relatórios', description: 'Baixe seus dados rapidamente em formato CSV ou imprima/salve em PDF.', side: 'bottom', align: 'start' } },
+        { element: '#extrato-tabela', popover: { title: 'Lançamentos', description: 'Lista completa com status, valores, categorias e instituições bancárias de cada registro.', side: 'top', align: 'start' } }
+      ]
+    });
+    driverObj.drive();
   }
   
 }

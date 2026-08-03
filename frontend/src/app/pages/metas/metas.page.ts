@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { driver } from 'driver.js';
 
 import localePt from '@angular/common/locales/pt';
 registerLocaleData(localePt);
@@ -22,7 +23,7 @@ export interface Goal {
   templateUrl: './metas.page.html',
   styleUrl: './metas.page.scss'
 })
-export class MetasPage implements OnInit {
+export class MetasPage implements OnInit, AfterViewInit {
   userName: string = '';
   showGoalModal: boolean = false;
   showDepositModal: boolean = false;
@@ -50,6 +51,14 @@ export class MetasPage implements OnInit {
       this.userName = JSON.parse(userJson).name;
     }
     this.loadGoals();
+  }
+
+  ngAfterViewInit(): void {
+    const jaViu = localStorage.getItem('metas_tutorial');
+    if (!jaViu) {
+      this.restartTour();
+      localStorage.setItem('metas_tutorial', 'true');
+    }
   }
 
   loadGoals(): void {
@@ -143,5 +152,22 @@ export class MetasPage implements OnInit {
 
   handleLogout(): void {
     this.authService.logout();
+  }
+
+  // MOTOR DO TOUR INTERATIVO (DRIVER.JS)
+  restartTour(): void {
+    const driverObj = driver({
+      showProgress: true,
+      animate: true,
+      nextBtnText: 'Próximo →',
+      prevBtnText: '← Anterior',
+      doneBtnText: 'Concluir',
+      steps: [
+        { popover: { title: 'Metas e Caixinhas 🎯', description: 'Gerencie suas economias e acompanhe o crescimento dos seus objetivos para o futuro.', align: 'center' } },
+        { element: '#btn-nova-meta', popover: { title: 'Criar Objetivo', description: 'Clique aqui para adicionar uma nova meta financeira, definindo nome, ícone e valor alvo.', side: 'bottom', align: 'start' } },
+        { element: '#lista-metas', popover: { title: 'Acompanhamento', description: 'Monitore as barras de progresso de cada caixinha e faça novos aportes de saldo quando quiser.', side: 'top', align: 'start' } }
+      ]
+    });
+    driverObj.drive();
   }
 }
