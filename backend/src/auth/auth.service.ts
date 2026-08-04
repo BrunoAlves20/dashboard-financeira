@@ -1,16 +1,18 @@
-import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
-  prisma: any;
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService, // <-- CORREÇÃO: Injetado corretamente para evitar erro de undefined
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -36,6 +38,7 @@ export class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
+        isVerified: user.isVerified, // <-- ADICIONADO: Fundamental para o frontend exibir/ocultar o modal
       },
       access_token: this.jwtService.sign(payload),
     };
@@ -125,5 +128,51 @@ export class AuthService {
     await this.prisma.passwordResetToken.delete({ where: { id: resetRecord.id } });
 
     return { message: 'Senha atualizada com sucesso!' };
+  }
+
+  async verifyEmail(dto: VerifyEmailDto) {
+    const { email, code } = dto;
+
+    // 1. Busca o usuário pelo e-mail
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado.');
+    }
+
+    if (user.isVerified) {
+      return { message: 'Este e-mail já foi verificado anteriormente.' };
+    }
+
+    // 1. Checa se o código está correto
+    if (!user.verificationCode || user.verificationCode !== code) {
+      throw new BadRequestException('Código de verificação incorreto.');
+    }
+
+    // 2. Checa se o código expirou (passou dos 10 minutos)
+    if (user.verificationCodeExpiresAt && user.verificationCodeExpiresAt < new Date()) {
+      throw new BadRequestException('O código de verificação expirou (limite de 10 minutos). Solicite um novo código.');
+    }
+
+    // 3. Atualiza o usuário como verificado e limpa os campos temporários
+    const updatedUser = await this.prisma.user.update({
+      where: { email },
+      data: {
+        isVerified: true,
+        verificationCode: null,
+        verificationCodeExpiresAt: null,
+      },
+    });
+    return {
+      message: 'E-mail verificado com sucesso!',
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        isVerified: updatedUser.isVerified,
+      },
+    };
   }
 }

@@ -11,24 +11,46 @@ export class UsersService {
   async create(createUserDto: CreateUserDto) {
     const { email, name, password } = createUserDto;
 
-    // 1. Verifica se o email já está cadastrado
     const userExists = await this.prisma.user.findUnique({ where: { email } });
     if (userExists) {
       throw new ConflictException('Este email já está cadastrado');
     }
 
-    // 2. Criptografa a senha do usuário
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    // GARANTIA DE CÓDIGO ÚNICO
 
-    // 3. Salva no banco e retorna o usuário sem a senha por segurança
+    let verificationCode = '';
+    let isUnique = false;
+
+    // Fica gerando um código novo até encontrar um que não exista no banco
+    while (!isUnique) {
+      verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const codeExists = await this.prisma.user.findFirst({
+        where: { verificationCode }
+      });
+      if (!codeExists) {
+        isUnique = true; 
+      }
+    }
+    // Expiração em 10 minutos  
+    const verificationCodeExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
     const user = await this.prisma.user.create({
       data: {
         email,
         name,
         password: hashedPassword,
+        isVerified: false,
+        verificationCode: verificationCode,
+        verificationCodeExpiresAt: verificationCodeExpiresAt,
       },
     });
+
+    console.log(`\n=================================================`);
+    console.log(`🔑 CÓDIGO ÚNICO GERADO PARA: ${user.email}`);
+    console.log(`👉 CÓDIGO: ${verificationCode}`);
+    console.log(`=================================================\n`);
 
     const { password: _, ...result } = user;
     return result;
@@ -44,7 +66,6 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('Usuário não encontrado');
     
-    // Remove a senha usando desestruturação
     const { password: _, ...result } = user;
     return result;
   }
@@ -55,17 +76,19 @@ export class UsersService {
       data: { name: updateData.name },
     });
     
-    // Remove a senha usando desestruturação
     const { password: _, ...result } = user;
     return result;
   }
 
   async remove(id: string) {
-    // 1. Apaga primeiro as dependências (Transações e Categorias) para evitar erro de chave estrangeira
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado no banco de dados.');
+    }
+
     await this.prisma.transaction.deleteMany({ where: { userId: id } });
     await this.prisma.category.deleteMany({ where: { userId: id } });
     
-    // 2. Apaga o usuário
     return this.prisma.user.delete({ where: { id } });
   }
 }

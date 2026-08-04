@@ -18,6 +18,9 @@ model User {
   transactions Transaction[] 
   categories    Category []
   passwordResetTokens PasswordResetToken[]
+  isVerified       Boolean  @default(false)  // <---  Indica se foi verificado
+  verificationCode String?                   // <---  Guarda o código de 6 dígitos
+  verificationCodeExpiresAt DateTime? // <---  Expiração do código
 
   @@map("users") // Mapeia o nome da tabela no banco para "users" em minúsculo
 }

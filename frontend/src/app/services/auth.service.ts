@@ -18,7 +18,7 @@ interface AuthResponse {
 })
 export class AuthService {
   // URL do nosso backend NestJS
-  private apiUrl = 'http://localhost:3001';
+  private apiUrl = 'http://localhost:3000';
   // private apiUrl = 'https://dashboard-financeira.onrender.com';
 
   constructor(
@@ -79,5 +79,10 @@ export class AuthService {
   // 7. Deletar Conta (Novo)
   deleteAccount(): Observable<any> {
     return this.http.delete(`${this.apiUrl}/users/me`, { headers: this.getHeaders() });
+  }
+
+  // 8. Método para enviar o e-mail e o código de 6 dígitos
+  verifyEmail(email: string, code: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/verify-email`, { email, code });
   }
 }
