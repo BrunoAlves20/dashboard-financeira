@@ -17,8 +17,8 @@ interface AuthResponse {
   providedIn: 'root'
 })
 export class AuthService {
-
-  private apiUrl = 'http://98.81.217.35:3000';
+  private apiUrl = '[https://financas-bruno-api.duckdns.org](https://financas-bruno-api.duckdns.org)';
+  // private apiUrl = 'http://98.81.217.35:3000';
   // URL do nosso backend NestJS
   // private apiUrl = 'http://localhost:3000';
   // private apiUrl = 'https://dashboard-financeira.onrender.com';
