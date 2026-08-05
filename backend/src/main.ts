@@ -16,7 +16,8 @@ async function bootstrap() {
     'https://dashboard-financeira-blush.vercel.app',
     /\.vercel\.app$/ // Permite qualquer subdomínio da Vercel
   ],
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true,
   });
 
