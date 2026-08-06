@@ -13,7 +13,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-    private readonly prisma: PrismaService, // <-- CORREÇÃO: Injetado corretamente para evitar erro de undefined
+    private readonly prisma: PrismaService,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -39,7 +39,7 @@ export class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
-        isVerified: user.isVerified, // <-- ADICIONADO: Fundamental para o frontend exibir/ocultar o modal
+        isVerified: user.isVerified,
       },
       access_token: this.jwtService.sign(payload),
     };
@@ -49,11 +49,10 @@ export class AuthService {
     // 1. Verifica se o usuário existe
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user) {
-      // Por segurança, não informamos que o e-mail não existe para evitar rastreio
       throw new HttpException('Se o e-mail existir, um token foi gerado.', HttpStatus.OK);
     }
 
-    // 2. Invalida tokens anteriores desse usuário (boa prática de segurança)
+    // 2. Invalida tokens anteriores desse usuário
     await this.prisma.passwordResetToken.deleteMany({
       where: { userId: user.id }
     });
@@ -61,7 +60,7 @@ export class AuthService {
     // 3. Gera um token aleatório criptograficamente seguro
     const resetToken = crypto.randomBytes(32).toString('hex');
     
-    // 4. Cria o hash do token para salvar no banco (nunca salvamos em texto plano)
+    // 4. Cria o hash do token para salvar no banco
     const tokenHash = await bcrypt.hash(resetToken, 10);
     
     // 5. Define a expiração para 10 minutos no futuro
@@ -76,26 +75,19 @@ export class AuthService {
       },
     });
 
-    // IMPORTANTE: Retornamos o token em texto plano APENAS aqui. 
-    // Em um cenário real, você injetaria o serviço de E-mail aqui e enviaria. 
-    // Como queremos uma API de validação direta para exibir no frontend (ou logs), retornamos ele.
-    // Disparo do e-mail de recuperação
+    // 7. Disparo do e-mail de recuperação
     try {
       await this.sendPasswordResetEmail(user.email, resetToken);
-      console.log(`📧 E-mail de redefinição enviado para ${user.email}`);
+      console.log(`📧 E-mail de redefinição enviado com sucesso para ${user.email}`);
     } catch (error) {
       console.error(`❌ Erro ao enviar redefinição para ${user.email}:`, error);
     }
 
-    // Por segurança, a API só avisa que o e-mail foi enviado (sem expor o token no frontend)
     return { 
       message: 'Se o e-mail existir no sistema, um link de recuperação foi enviado.' 
     };
   }
   
-  /**
-   * Valida o token e redefine a senha do usuário
-   */
   async resetPassword(email: string, token: string, newPassword: string) {
     // 1. Busca o usuário
     const user = await this.prisma.user.findUnique({ where: { email } });
@@ -112,7 +104,7 @@ export class AuthService {
       throw new HttpException('Nenhum token de redefinição encontrado.', HttpStatus.BAD_REQUEST);
     }
 
-    // 3. Verifica se o token expirou (passou de 10 minutos)
+    // 3. Verifica se o token expirou
     if (resetRecord.expiresAt < new Date()) {
       await this.prisma.passwordResetToken.delete({ where: { id: resetRecord.id } });
       throw new HttpException('O token expirou. Solicite um novo.', HttpStatus.BAD_REQUEST);
@@ -133,7 +125,7 @@ export class AuthService {
       data: { password: newPasswordHash },
     });
 
-    // 7. Limpa o token usado para que não possa ser reaproveitado (Segurança)
+    // 7. Limpa o token usado
     await this.prisma.passwordResetToken.delete({ where: { id: resetRecord.id } });
 
     return { message: 'Senha atualizada com sucesso!' };
@@ -142,7 +134,6 @@ export class AuthService {
   async verifyEmail(dto: VerifyEmailDto) {
     const { email, code } = dto;
 
-    // 1. Busca o usuário pelo e-mail
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -155,17 +146,14 @@ export class AuthService {
       return { message: 'Este e-mail já foi verificado anteriormente.' };
     }
 
-    // 1. Checa se o código está correto
     if (!user.verificationCode || user.verificationCode !== code) {
       throw new BadRequestException('Código de verificação incorreto.');
     }
 
-    // 2. Checa se o código expirou (passou dos 10 minutos)
     if (user.verificationCodeExpiresAt && user.verificationCodeExpiresAt < new Date()) {
       throw new BadRequestException('O código de verificação expirou (limite de 10 minutos). Solicite um novo código.');
     }
 
-    // 3. Atualiza o usuário como verificado e limpa os campos temporários
     const updatedUser = await this.prisma.user.update({
       where: { email },
       data: {
@@ -174,6 +162,7 @@ export class AuthService {
         verificationCodeExpiresAt: null,
       },
     });
+    
     return {
       message: 'E-mail verificado com sucesso!',
       user: {
@@ -186,32 +175,32 @@ export class AuthService {
   }
 
   private async sendPasswordResetEmail(email: string, token: string) {
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: Number(process.env.SMTP_PORT) || 587,
-    secure: false,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: false,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
 
-  // O link aponta direto para a tela de nova senha no seu frontend da Vercel
-  const resetLink = `https://dashboard-financeira-blush.vercel.app/reset-password?token=${token}&email=${email}`;
+    // Link que aponta para a página de criar nova senha no frontend
+    const resetLink = `https://dashboard-financeira-blush.vercel.app/reset-password?token=${token}&email=${email}`;
 
-  await transporter.sendMail({
-    from: `"Dashboard Financeira" <${process.env.EMAIL_FROM}>`,
-    to: email,
-    subject: 'Redefinição de Senha - Dashboard Financeira',
-    html: `
-      <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-        <h2>Recuperação de Senha</h2>
-        <p>Você solicitou a redefinição da sua senha.</p>
-        <p>Clique no link abaixo para criar uma nova senha. O link é válido por 10 minutos:</p>
-        <a href="${resetLink}" style="display: inline-block; padding: 10px 20px; background-color: #2b6cb0; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">Redefinir Senha</a>
-        <p>Se você não solicitou esta alteração, ignore este e-mail.</p>
-      </div>
-    `,
-  });
-}
+    await transporter.sendMail({
+      from: `"Dashboard Financeira" <${process.env.EMAIL_FROM}>`,
+      to: email,
+      subject: 'Redefinição de Senha - Dashboard Financeira',
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+          <h2>Recuperação de Senha</h2>
+          <p>Você solicitou a redefinição da sua senha.</p>
+          <p>Clique no botão abaixo para criar uma nova senha (válido por 10 minutos):</p>
+          <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 16px 0;">Redefinir Senha</a>
+          <p>Se você não solicitou esta alteração, ignore este e-mail.</p>
+        </div>
+      `,
+    });
+  }
 }
