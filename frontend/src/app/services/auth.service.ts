@@ -87,4 +87,15 @@ export class AuthService {
   verifyEmail(email: string, code: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/verify-email`, { email, code });
   }
+
+  // 9. Solicita o envio do e-mail com o link de recuperação
+  requestPasswordReset(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/forgot-password`, { email });
+  }
+
+  // 10. Envia a nova senha junto com o token recebido no link
+  resetPassword(email: string, token: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/reset-password`, { email, token, newPassword });
+  }
+
 }

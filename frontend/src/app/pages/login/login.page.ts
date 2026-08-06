@@ -22,6 +22,9 @@ export class LoginPage implements OnDestroy {
   pendingEmail: string = '';
   verificationCode: string = '';
 
+  // Controle de Esqueci a Senha (NOVO)
+  isForgotPassword: boolean = false;
+
   // Temporizador de 10 minutos (600 segundos)
   timeLeft: number = 600; 
   timerInterval: any;
@@ -47,7 +50,6 @@ export class LoginPage implements OnDestroy {
     this.showPassword = !this.showPassword;
   }
 
-  // Formata os segundos em MM:SS (Ex: 09:59)
   get formattedTimer(): string {
     const minutes = Math.floor(this.timeLeft / 60);
     const seconds = this.timeLeft % 60;
@@ -56,7 +58,7 @@ export class LoginPage implements OnDestroy {
 
   startTimer(): void {
     this.stopTimer();
-    this.timeLeft = 600; // Reseta para 10 minutos
+    this.timeLeft = 600; 
     this.timerInterval = setInterval(() => {
       if (this.timeLeft > 0) {
         this.timeLeft--;
@@ -86,7 +88,6 @@ export class LoginPage implements OnDestroy {
 
     this.authService.login(email, password).subscribe({
       next: (res: any) => {
-        // Verifica se a resposta contém a flag de e-mail verificado
         if (res.user && res.user.isVerified === false) {
           this.loading = false;
           this.pendingEmail = email;
@@ -94,8 +95,6 @@ export class LoginPage implements OnDestroy {
           this.startTimer();
           return;
         }
-
-        // Se verificado, redireciona diretamente para o Dashboard
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {
@@ -120,7 +119,6 @@ export class LoginPage implements OnDestroy {
         this.loading = false;
         alert('E-mail verificado com sucesso! Entrando no sistema...');
         
-        // Re-executa o login automático pós-ativação
         const { password } = this.loginForm.value;
         this.authService.login(this.pendingEmail, password).subscribe(() => {
           this.router.navigate(['/dashboard']);
@@ -138,5 +136,40 @@ export class LoginPage implements OnDestroy {
     this.isAwaitingCode = false;
     this.verificationCode = '';
     this.errorMessage = '';
+  }
+
+  // ==========================================
+  // NOVOS MÉTODOS PARA RECUPERAÇÃO DE SENHA
+  // ==========================================
+  
+  toggleForgotPassword(): void {
+    this.isForgotPassword = !this.isForgotPassword;
+    this.errorMessage = '';
+  }
+
+  onRecoverPassword(): void {
+    const email = this.loginForm.get('email')?.value;
+
+    if (!email || this.loginForm.get('email')?.invalid) {
+      this.errorMessage = 'Por favor, digite um e-mail válido no campo abaixo.';
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = '';
+
+    // Chamada para o seu backend solicitar o link de reset
+    // Atenção: Certifique-se de ter criado o método requestPasswordReset() no seu auth.service.ts do frontend!
+    this.authService.requestPasswordReset(email).subscribe({
+      next: () => {
+        this.loading = false;
+        alert('Se o e-mail existir, um link de recuperação foi enviado!');
+        this.toggleForgotPassword();
+      },
+      error: (err) => {
+        this.loading = false;
+        this.errorMessage = err.error?.message || 'Erro ao solicitar recuperação de senha.';
+      }
+    });
   }
 }
