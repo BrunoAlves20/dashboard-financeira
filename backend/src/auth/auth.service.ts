@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class AuthService {
@@ -78,9 +79,17 @@ export class AuthService {
     // IMPORTANTE: Retornamos o token em texto plano APENAS aqui. 
     // Em um cenário real, você injetaria o serviço de E-mail aqui e enviaria. 
     // Como queremos uma API de validação direta para exibir no frontend (ou logs), retornamos ele.
+    // Disparo do e-mail de recuperação
+    try {
+      await this.sendPasswordResetEmail(user.email, resetToken);
+      console.log(`📧 E-mail de redefinição enviado para ${user.email}`);
+    } catch (error) {
+      console.error(`❌ Erro ao enviar redefinição para ${user.email}:`, error);
+    }
+
+    // Por segurança, a API só avisa que o e-mail foi enviado (sem expor o token no frontend)
     return { 
-      message: 'Token gerado com sucesso',
-      resetToken 
+      message: 'Se o e-mail existir no sistema, um link de recuperação foi enviado.' 
     };
   }
   
@@ -175,4 +184,34 @@ export class AuthService {
       },
     };
   }
+
+  private async sendPasswordResetEmail(email: string, token: string) {
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+
+  // O link aponta direto para a tela de nova senha no seu frontend da Vercel
+  const resetLink = `https://dashboard-financeira-blush.vercel.app/reset-password?token=${token}&email=${email}`;
+
+  await transporter.sendMail({
+    from: `"Dashboard Financeira" <${process.env.EMAIL_FROM}>`,
+    to: email,
+    subject: 'Redefinição de Senha - Dashboard Financeira',
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+        <h2>Recuperação de Senha</h2>
+        <p>Você solicitou a redefinição da sua senha.</p>
+        <p>Clique no link abaixo para criar uma nova senha. O link é válido por 10 minutos:</p>
+        <a href="${resetLink}" style="display: inline-block; padding: 10px 20px; background-color: #2b6cb0; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">Redefinir Senha</a>
+        <p>Se você não solicitou esta alteração, ignore este e-mail.</p>
+      </div>
+    `,
+  });
+}
 }
