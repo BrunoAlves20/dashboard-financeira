@@ -24,8 +24,8 @@ export interface Transaction {
   providedIn: 'root'
 })
 export class TransactionService {
-// private apiUrl = 'https://financas-bruno-api.duckdns.org/transactions';  // private apiUrl = 'http://98.81.217.35:3000/transactions';
-  private apiUrl = 'http://localhost:3000/transactions';
+private apiUrl = 'https://financas-bruno-api.duckdns.org/transactions';  // private apiUrl = 'http://98.81.217.35:3000/transactions';
+  // private apiUrl = 'http://localhost:3000/transactions';
   // private apiUrl = 'https://dashboard-financeira.onrender.com/transactions';
 
   constructor(private http: HttpClient) {}
@@ -74,5 +74,9 @@ export class TransactionService {
 
   deleteTransaction(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
+  }
+  
+  updateTransaction(id: string, payload: any): Observable<Transaction> {
+    return this.http.patch<Transaction>(`${this.apiUrl}/${id}`, payload, { headers: this.getHeaders() });
   }
 }

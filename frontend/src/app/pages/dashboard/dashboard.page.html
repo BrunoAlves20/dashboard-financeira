@@ -5,7 +5,6 @@
   <!-- ========================================== -->
   <aside class="w-full md:w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex-shrink-0 flex flex-col justify-between p-4">
     <div>
-      <!-- LOGO E NOME DO APP -->
       <div class="flex items-center gap-3 px-2 py-3 mb-6 border-b border-gray-200 dark:border-slate-800">
         <div class="h-10 w-10 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-xl shadow-lg shadow-indigo-600/20 text-white">
           $
@@ -16,9 +15,7 @@
         </div>
       </div>
 
-      <!-- LINKS DE NAVEGAÇÃO -->
       <nav class="space-y-1">
-        <!-- Dashboard (Ativa) -->
         <a routerLink="/dashboard" routerLinkActive="bg-indigo-600 text-white" [routerLinkActiveOptions]="{exact: true}"
           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-slate-800 transition-all">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -27,7 +24,6 @@
           <span>Dashboard</span>
         </a>
 
-        <!-- Extratos -->
         <a routerLink="/extrato" routerLinkActive="bg-indigo-600 text-white" 
           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-slate-800 transition-all">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -36,7 +32,6 @@
           <span>Extratos</span>
         </a>
 
-        <!-- Gráficos -->
         <a routerLink="/graficos" routerLinkActive="bg-indigo-600 text-white" 
           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-slate-800 transition-all">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -46,7 +41,6 @@
           <span>Gráficos</span>
         </a>
 
-        <!-- Metas -->
         <a routerLink="/metas" routerLinkActive="bg-indigo-600 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-slate-800 transition-all">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -54,7 +48,6 @@
           <span>Metas</span>
         </a>
 
-        <!-- Perfil -->
         <a routerLink="/perfil" routerLinkActive="bg-indigo-600 text-white" 
           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-slate-800 transition-all">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -65,7 +58,6 @@
       </nav>
     </div>
 
-    <!-- RODAPÉ DO MENU (USUÁRIO E LOGOUT) -->
     <div class="pt-4 border-t border-gray-200 dark:border-slate-800 flex items-center justify-between mt-6 md:mt-0">
       <div class="truncate">
         <p class="text-xs font-semibold text-gray-900 dark:text-white truncate">{{ userName }}</p>
@@ -84,7 +76,6 @@
   <!-- ========================================== -->
   <main class="flex-1 p-6 space-y-6 overflow-y-auto">
     
-    <!-- BARRA SUPERIOR (SAUDAÇÃO E FILTRO DE DATA BR) -->
     <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm dark:shadow-xl">
       <div>
         <h2 class="text-lg font-bold tracking-tight text-gray-900 dark:text-white">Painel Principal</h2>
@@ -92,12 +83,10 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <!-- BOTÃO DE REINICIAR TOUR -->
         <button (click)="restartTour()" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 flex items-center gap-1 border border-indigo-200 dark:border-indigo-500/30 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 transition-all">
           💡 Como funciona?
         </button>
 
-        <!-- SELETOR DE PERÍODO (PADRÃO DD/MM/AAAA) -->
         <div id="filtro-data" class="flex items-center gap-2 bg-gray-50 dark:bg-slate-950 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-inner relative group w-fit">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-500 dark:text-indigo-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -122,7 +111,6 @@
     <!-- GRID DE CARDS DE RESUMO -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       
-      <!-- CARD: SALDO ATUAL -->
       <div id="saldo-card" class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm dark:shadow-xl relative overflow-hidden group">
         <p class="text-sm font-medium text-gray-500 dark:text-slate-400">Saldo Atual</p>
         <h3 class="text-3xl font-bold mt-2" [ngClass]="summary.balance >= 0 ? 'text-gray-900 dark:text-white' : 'text-red-600 dark:text-red-400'">
@@ -131,7 +119,6 @@
         <p class="text-xs text-indigo-600 dark:text-indigo-400 mt-2">Balanço geral da sua conta</p>
       </div>
 
-      <!-- CARD: RECEITAS -->
       <div id="metas-card" class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm dark:shadow-xl relative overflow-hidden group">
         <p class="text-sm font-medium text-gray-500 dark:text-slate-400">Entradas</p>
         <h3 class="text-3xl font-bold mt-2 text-emerald-600 dark:text-emerald-400">
@@ -140,7 +127,6 @@
         <p class="text-xs text-emerald-600/80 dark:text-emerald-500/80 mt-2">Total de receitas acumuladas</p>
       </div>
 
-      <!-- CARD: DESPESAS -->
       <div id="graficos-card" class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm dark:shadow-xl relative overflow-hidden group">
         <p class="text-sm font-medium text-gray-500 dark:text-slate-400">Saídas</p>
         <h3 class="text-3xl font-bold mt-2 text-red-600 dark:text-red-400">
@@ -169,7 +155,6 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
          @for (cat of categories; track cat.id) {
           <div class="bg-gray-50 dark:bg-slate-950 p-4 rounded-xl border border-gray-200 dark:border-slate-800/80 space-y-2 group relative">
-            <!-- Cabeçalho do Card e Ações (Editar e Excluir) -->
             <div class="flex justify-between items-start">
               <div>
                 <span class="text-xs font-bold text-gray-900 dark:text-white block">{{ cat.name }}</span>
@@ -177,7 +162,6 @@
                   {{ cat.budgetLimit ? (cat.budgetLimit | currency:'BRL':'symbol':'1.0-0':'pt-BR') : 'Sem limite' }}
                 </span>
               </div>
-              <!-- AÇÕES: Botões de Editar e Lixeira -->
               <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-all">
                 <button (click)="openEditCategoryModal(cat)" title="Editar categoria"
                   class="text-gray-500 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm p-1 rounded-md hover:bg-indigo-100 dark:hover:bg-indigo-500/10">
@@ -190,12 +174,10 @@
               </div>
             </div>
 
-              <!-- Valores da Categoria -->
               <div class="text-sm font-semibold" [ngClass]="(cat.budgetLimit && (cat.totalSpent || 0) > cat.budgetLimit) ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-slate-300'">
                 {{ (cat.totalSpent || 0) | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
               </div>
               
-              <!-- Barra de Progresso -->
               @if (cat.budgetLimit) {
                 <div class="w-full bg-gray-200 dark:bg-slate-900 h-1.5 rounded-full overflow-hidden mt-2">
                   <div class="h-full transition-all duration-300"
@@ -246,16 +228,22 @@
                   </div>
                 </div>
                 
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
                   <div class="text-right">
                     <span class="text-sm font-bold block" [ngClass]="item.type === 'INCOME' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'">
                       {{ item.type === 'INCOME' ? '+' : '-' }} {{ (item.amount || 0) | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
                     </span>
                     <span class="text-[10px] text-gray-500 dark:text-slate-500">{{ item.date | date:'dd/MM/yyyy' }}</span>
                   </div>
-                  <button (click)="onDeleteTransaction(item.id)" class="p-2 text-gray-500 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 bg-gray-100 dark:bg-slate-900 hover:bg-red-100 dark:hover:bg-red-500/10 rounded-xl border border-gray-200 dark:border-slate-800 opacity-0 group-hover:opacity-100 transition-all">
-                    🗑️
-                  </button>
+
+                  <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                    <button (click)="openEditTransactionModal(item)" title="Editar movimentação" class="p-2 text-gray-500 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 bg-gray-100 dark:bg-slate-900 hover:bg-indigo-100 dark:hover:bg-indigo-500/10 rounded-xl border border-gray-200 dark:border-slate-800 transition-all">
+                      ✏️
+                    </button>
+                    <button (click)="onDeleteTransaction(item.id)" title="Excluir movimentação" class="p-2 text-gray-500 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 bg-gray-100 dark:bg-slate-900 hover:bg-red-100 dark:hover:bg-red-500/10 rounded-xl border border-gray-200 dark:border-slate-800 transition-all">
+                      🗑️
+                    </button>
+                  </div>
                 </div>
               </div>
             }
@@ -270,26 +258,22 @@
         </h4>
         
         <form [formGroup]="transactionForm" (ngSubmit)="onAddTransaction()" class="space-y-4">
-          <!-- Botões Entrada / Saída -->
           <div class="grid grid-cols-2 gap-3">
             <button type="button" (click)="setTransactionType('INCOME')" [class]="transactionForm.get('type')?.value === 'INCOME' ? 'bg-emerald-50 dark:bg-emerald-500/20 border-emerald-200 dark:border-emerald-500 text-emerald-700 dark:text-emerald-400' : 'bg-gray-50 dark:bg-slate-950 border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400'" class="py-2.5 px-4 text-xs font-semibold border rounded-xl transition-all">📈 Entrada</button>
             <button type="button" (click)="setTransactionType('EXPENSE')" [class]="transactionForm.get('type')?.value === 'EXPENSE' ? 'bg-red-50 dark:bg-red-500/20 border-red-200 dark:border-red-500 text-red-700 dark:text-red-400' : 'bg-gray-50 dark:bg-slate-950 border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400'" class="py-2.5 px-4 text-xs font-semibold border rounded-xl transition-all">📉 Saída</button>
           </div>
 
-          <!-- Descrição -->
           <div>
             <label class="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Descrição</label>
             <input formControlName="description" type="text" class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-800 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-indigo-500" placeholder="Ex: Salário, Saia no Shopping, Mercado">
           </div>
 
-          <!-- Valor e Categoria -->
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Valor (R$)</label>
               <input formControlName="amount" type="number" step="0.01" class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-800 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-indigo-500" placeholder="0,00">
             </div>
             
-            <!-- Categoria: Oculta se NÃO for despesa -->
             @if (isExpense) {
               <div>
                 <label class="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Categoria</label>
@@ -303,7 +287,6 @@
             }
           </div>
 
-          <!-- Banco e Pagamento -->
           <div class="grid gap-3" [ngClass]="isExpense ? 'grid-cols-2' : 'grid-cols-1'">
             <div>
               <div class="flex justify-between items-center mb-1">
@@ -317,7 +300,6 @@
               </select>
             </div>
 
-            <!-- Só aparece se for SAÍDA -->
             @if (isExpense) {
               <div>
                 <label class="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Forma de Pagamento</label>
@@ -332,34 +314,91 @@
             }
           </div>
 
-          <!-- CAMPO DE PARCELAS -->
+          <!-- SEÇÃO DE PARCELAS COM SUPORTE A PARCELAS EM ANDAMENTO -->
           @if (isExpense && transactionForm.get('paymentMethod')?.value === 'CREDIT') {
-            <div class="mt-3">
-              <label class="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Número de Parcelas</label>
-              <select formControlName="installments" class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-800 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-indigo-500">
-                <option [value]="1">1x (À vista no crédito)</option>
-                <option [value]="2">2x</option>
-                <option [value]="3">3x</option>
-                <option [value]="4">4x</option>
-                <option [value]="5">5x</option>
-                <option [value]="6">6x</option>
-                <option [value]="10">10x</option>
-                <option [value]="12">12x</option>
-              </select>
+            <div class="mt-3 p-3 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800/80 rounded-xl space-y-3">
+              <div>
+                <label class="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Total de Parcelas da Compra</label>
+                <input 
+                  formControlName="installments" 
+                  type="number" 
+                  min="1" 
+                  max="48"
+                  placeholder="Ex: 10" 
+                  class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-800 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <!-- CHECKBOX PARA COMPRA JÁ EM ANDAMENTO -->
+              <div class="flex items-center justify-between pt-1">
+                <div>
+                  <p class="text-xs font-semibold text-gray-800 dark:text-slate-200">Compra já em andamento?</p>
+                  <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Marque se já pagou algumas parcelas</p>
+                </div>
+                <input 
+                  type="checkbox" 
+                  formControlName="isPartialInstallment"
+                  class="w-4 h-4 text-indigo-600 rounded cursor-pointer"
+                />
+              </div>
+
+              <!-- CAMPO: QUANTAS PARCELAS JÁ FORAM PAGAS -->
+              @if (transactionForm.get('isPartialInstallment')?.value) {
+                <div class="pt-1">
+                  <label class="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Quantas parcelas você já pagou?</label>
+                  <input 
+                    formControlName="paidInstallments" 
+                    type="number" 
+                    min="0"
+                    placeholder="Ex: 5" 
+                    class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-800 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-indigo-500"
+                  />
+                  <p class="text-xs text-indigo-600 dark:text-indigo-400 mt-1">
+                    * O sistema lançará apenas as parcelas restantes a partir da data informada.
+                  </p>
+                </div>
+              }
             </div>
           }
 
-          <!-- CHECKBOX DE RECORRÊNCIA -->
-          <div class="flex items-center gap-2 pt-1 pb-2">
-            <input 
-              type="checkbox" 
-              id="isRecurring" 
-              formControlName="isRecurring"
-              class="w-4 h-4 text-indigo-600 bg-gray-50 dark:bg-slate-950 border-gray-300 dark:border-slate-800 rounded focus:ring-indigo-500 cursor-pointer"
-            />
-            <label for="isRecurring" class="text-xs text-gray-600 dark:text-slate-300 font-medium cursor-pointer">
-              🔄 Lançamento Recorrente (Repetir todo mês)
-            </label>
+          <div class="mt-3">
+            <label class="text-xs font-semibold text-gray-700 dark:text-slate-300 block mb-1">
+              Data da Compra / Lançamento
+            </label>            
+            <div class="relative bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-800 rounded-xl px-3 py-2 flex items-center justify-between cursor-pointer">
+              <span class="text-xs font-semibold text-gray-900 dark:text-white">
+                {{ formattedTransactionDateBr }}
+              </span>              
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-500 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <input 
+                formControlName="date" 
+                type="date" 
+                class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+              />
+            </div>
+            <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">
+              * Se deixar em branco, será registrada com a data de hoje.
+            </p>
+          </div>
+
+          <div class="p-3.5 bg-gray-50 dark:bg-slate-950 rounded-xl border border-gray-200 dark:border-slate-800/80 flex items-center justify-between mt-3">
+            <div>
+              <p class="text-xs font-bold text-gray-900 dark:text-white">Lançamento Recorrente</p>
+              <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Repetir todo mês (ex: assinatura, aluguel)</p>
+            </div>
+
+            <button 
+              type="button"
+              (click)="toggleRecurring()"
+              [class]="transactionForm.get('isRecurring')?.value ? 'bg-indigo-600' : 'bg-gray-300 dark:bg-slate-800'"
+              class="w-11 h-6 flex items-center rounded-full p-0.5 cursor-pointer transition-colors duration-300 flex-shrink-0">
+              <div 
+                [class]="transactionForm.get('isRecurring')?.value ? 'translate-x-5' : 'translate-x-0'"
+                class="bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-300">
+              </div>
+            </button>
           </div>
 
           <button type="submit" [disabled]="loading" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm rounded-xl transition-all shadow-lg shadow-indigo-600/20 disabled:opacity-50">
@@ -372,9 +411,98 @@
 
   </main>
 
-  <!-- ========================================== -->
-  <!-- 3. MODAIS E ELEMENTOS FLUTUANTES          -->
-  <!-- ========================================== -->
+  <!-- MODAL: EDITAR TRANSAÇÃO -->
+  <div *ngIf="showEditTransactionModal" class="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 p-6 rounded-2xl w-full max-w-md space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Editar Movimentação</h3>
+        <button (click)="closeEditTransactionModal()" class="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white font-bold">✕</button>
+      </div>
+      
+      <form [formGroup]="editTransactionForm" (ngSubmit)="onUpdateTransaction()" class="space-y-4">
+        <div>
+          <label class="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Descrição</label>
+          <input formControlName="description" type="text" class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-800 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div>
+          <label class="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Valor (R$)</label>
+          <input formControlName="amount" type="number" step="0.01" class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-800 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Banco</label>
+            <select formControlName="bank" class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-800 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-indigo-500">
+              @for (b of banks; track b) {
+                <option [value]="b">{{ b }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label class="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Forma de Pagamento</label>
+            <select formControlName="paymentMethod" class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-800 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-indigo-500">
+              <option value="PIX">⚡ PIX</option>
+              <option value="CREDIT">💳 Crédito</option>
+              <option value="DEBIT">💳 Débito</option>
+              <option value="CASH">💵 Dinheiro</option>
+              <option value="BOLETO">📄 Boleto</option>
+            </select>
+          </div>
+        </div>
+
+        @if (isEditExpense && editTransactionForm.get('paymentMethod')?.value === 'CREDIT') {
+          <div>
+            <label class="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Número de Parcelas</label>
+            <input 
+              formControlName="installments" 
+              type="number" 
+              min="1" 
+              max="48"
+              class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-800 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-indigo-500"
+            />
+          </div>
+        }
+
+        <div>
+          <label class="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Categoria</label>
+          <select formControlName="categoryId" class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-800 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-indigo-500">
+            <option value="">Sem Categoria</option>
+            @for (cat of categories; track cat.id) {
+              <option [value]="cat.id">{{ cat.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-gray-700 dark:text-slate-300 block mb-1">
+            Data do Lançamento
+          </label>
+          <div class="relative bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-800 rounded-xl px-3 py-2 flex items-center justify-between cursor-pointer">
+            <span class="text-xs font-semibold text-gray-900 dark:text-white">
+              {{ formattedEditTransactionDateBr }}
+            </span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-500 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <input 
+              formControlName="date" 
+              type="date" 
+              class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+            />
+          </div>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button type="button" (click)="closeEditTransactionModal()" class="flex-1 py-2.5 bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-300 rounded-xl text-xs font-semibold transition-all">Cancelar</button>
+          <button type="submit" [disabled]="loading" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition-all">
+            {{ loading ? 'Salvando...' : 'Atualizar Lançamento' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- MODAL: NOVA CATEGORIA -->
   <div *ngIf="showCategoryModal" class="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -426,16 +554,12 @@
   </div>
   
   <!-- BOTÃO FLUTUANTE DA IA -->
-  <!-- <button (click)="showAiChat = !showAiChat"  -->
-  <button id="ai-button" (click)="showAiChat = !showAiChat" class="fixed bottom-6 right-6 h-14 w-14 bg-gradient-to-r from-indigo-500 to-purple-600 " 
-    class="fixed bottom-6 right-6 h-14 w-14 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl z-40 transition-all hover:scale-110 active:scale-95">
+  <button id="ai-button" (click)="showAiChat = !showAiChat" class="fixed bottom-6 right-6 h-14 w-14 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl z-40 transition-all hover:scale-110 active:scale-95">
     🤖
   </button>
 
   <!-- JANELA DE CHAT COM A IA -->
   <div *ngIf="showAiChat" class="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-3rem)] bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col h-[480px]">
-    
-    <!-- Cabeçalho do Chat -->
     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 text-white flex justify-between items-center">
       <div class="flex items-center gap-2">
         <span class="text-xl">🤖</span>
@@ -447,7 +571,6 @@
       <button (click)="showAiChat = false" class="text-white hover:text-slate-200 text-sm font-bold">✕</button>
     </div>
 
-    <!-- Histórico de Mensagens -->
     <div class="flex-1 p-4 space-y-3 overflow-y-auto bg-gray-50 dark:bg-slate-950">
       <div *ngFor="let msg of chatMessages" class="flex" [ngClass]="msg.sender === 'user' ? 'justify-end' : 'justify-start'">
         <div [ngClass]="msg.sender === 'user' ? 'bg-indigo-600 text-white rounded-t-2xl rounded-bl-2xl' : 'bg-white dark:bg-slate-900 text-gray-800 dark:text-slate-200 border border-gray-200 dark:border-slate-800 rounded-t-2xl rounded-br-2xl'" 
@@ -456,7 +579,6 @@
         </div>
       </div>
 
-      <!-- Animação de Carregamento da IA -->
       <div *ngIf="aiLoading" class="flex justify-start">
         <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400 p-3 rounded-2xl text-xs flex items-center gap-2 shadow">
           <span class="animate-pulse">Pensando e analisando seu saldo...</span>
@@ -464,7 +586,6 @@
       </div>
     </div>
 
-    <!-- Campo de Entrada do Chat -->
     <div class="p-3 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 flex gap-2">
       <input type="text" [(ngModel)]="aiPrompt" (keyup.enter)="sendAiQuery()" 
         placeholder="Ex: Quero comprar uma saia de R$150, posso?" 
@@ -474,7 +595,6 @@
         Enviar
       </button>
     </div>
-
   </div>
   
 </div>

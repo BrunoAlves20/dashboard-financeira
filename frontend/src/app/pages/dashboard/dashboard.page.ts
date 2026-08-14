@@ -24,15 +24,46 @@ export class DashboardPage implements OnInit {
   transactions: Transaction[] = [];
   categories: Category[] = [];
   
-  banks: string[] = ['Nubank', 'Banco Inter', 'Itaú', 'Bradesco', 'Caixa', 'Santander'];
+  banks: string[] = [];
+
+  loadBanks(): void {
+    const savedBanks = localStorage.getItem('user_banks');
+    if (savedBanks !== null) {
+      this.banks = JSON.parse(savedBanks);
+    } else {
+      const defaultBanks = ['Nubank', 'Itaú', 'Bradesco', 'Banco do Brasil', 'Santander', 'Inter'];
+      this.banks = defaultBanks;
+      this.saveBanks();
+    }
+  }
+
+  saveBanks(): void {
+    localStorage.setItem('user_banks', JSON.stringify(this.banks));
+  }
+
   newBankName: string = '';
-  
   currentFilter: 'ALL' | 'INCOME' | 'EXPENSE' = 'ALL';
 
   selectedMonth: number = new Date().getMonth() + 1;
   selectedYear: number = new Date().getFullYear();
-  
   selectedDate: string = new Date().toLocaleDateString('en-CA');
+
+  // Formatação de Datas em PT-BR
+  get formattedTransactionDateBr(): string {
+    const rawDate = this.transactionForm.get('date')?.value;
+    if (!rawDate) return 'DD/MM/AAAA';
+    const [year, month, day] = rawDate.split('-');
+    if (!year || !month || !day) return 'DD/MM/AAAA';
+    return `${day}/${month}/${year}`;
+  }
+
+  get formattedEditTransactionDateBr(): string {
+    const rawDate = this.editTransactionForm.get('date')?.value;
+    if (!rawDate) return 'DD/MM/AAAA';
+    const [year, month, day] = rawDate.split('-');
+    if (!year || !month || !day) return 'DD/MM/AAAA';
+    return `${day}/${month}/${year}`;
+  }
 
   get formattedBrDate(): string {
     if (!this.selectedDate) return 'DD/MM/AAAA';
@@ -41,13 +72,16 @@ export class DashboardPage implements OnInit {
   }
 
   transactionForm: FormGroup;
+  editTransactionForm: FormGroup;
   categoryForm: FormGroup;
 
   loading: boolean = false;
   showCategoryModal: boolean = false;
   showBankModal: boolean = false;
+  showEditTransactionModal: boolean = false;
 
   selectedCategoryForEdit: Category | null = null;
+  selectedTransactionForEdit: Transaction | null = null;
 
   showAiChat: boolean = false;
   aiPrompt: string = '';
@@ -70,8 +104,22 @@ export class DashboardPage implements OnInit {
       paymentMethod: ['PIX', Validators.required],
       bank: ['Nubank'],
       categoryId: [''],
-      installments: [1, [Validators.min(1), Validators.max(24)]],
+      installments: [1, [Validators.min(1), Validators.max(48)]],
+      paidInstallments: [0, [Validators.min(0)]],
+      isPartialInstallment: [false],
+      date: [''],
       isRecurring: [false]
+    });
+
+    this.editTransactionForm = this.fb.group({
+      description: ['', [Validators.required, Validators.minLength(3)]],
+      amount: ['', [Validators.required, Validators.min(0.01)]],
+      type: ['EXPENSE', [Validators.required]],
+      paymentMethod: ['PIX', Validators.required],
+      bank: ['Nubank'],
+      categoryId: [''],
+      installments: [1, [Validators.min(1), Validators.max(48)]],
+      date: ['']
     });
 
     this.categoryForm = this.fb.group({
@@ -87,30 +135,28 @@ export class DashboardPage implements OnInit {
     }
     this.loadDashboardData();
     this.loadCategories();
+    this.loadBanks();
 
-    // Dispara a checagem do tour com um leve delay para dar tempo da tela renderizar
     setTimeout(() => {
       this.checkAndStartTour();
     }, 500);
   }
+
   ngAfterViewInit() {
     this.iniciarTutorial();
   }
 
   iniciarTutorial() {
-    // Verifica se o usuário já viu o tutorial
     const jaViuTutorial = localStorage.getItem('dashboard_tutorial');
     if (!jaViuTutorial) {
       this.executarTour();
     }
   }
 
-  // Função chamada pelo botão "💡 Como funciona?"
   restartTour() {
     this.executarTour();
   }
 
-  // Motor central do Tour (Driver.js)
   private executarTour() {
     const driverObj = driver({
       showProgress: true,
@@ -119,68 +165,30 @@ export class DashboardPage implements OnInit {
       prevBtnText: '← Anterior',
       doneBtnText: 'Concluir',
       steps: [
-        { 
-          popover: { 
-            title: 'Bem-vindo ao FinAI! 🚀', 
-            description: 'Este é o seu painel central. Vamos fazer um tour rápido para você conhecer todas as ferramentas.', 
-            align: 'center' 
-          } 
-        },
-        { 
-          element: '#saldo-card', 
-          popover: { 
-            title: 'Seu Saldo Atual', 
-            description: 'Aqui você visualiza o montante total disponível na sua conta de forma consolidada.', 
-            side: "bottom", 
-            align: 'start' 
-          }
-        },
-        { 
-          element: '#metas-card', 
-          popover: { 
-            title: 'Suas Entradas', 
-            description: 'Todas as suas receitas e aportes acumulados neste mês aparecem aqui.', 
-            side: "bottom", 
-            align: 'start' 
-          }
-        },
-        { 
-          element: '#graficos-card', 
-          popover: { 
-            title: 'Suas Saídas', 
-            description: 'O controle dos seus gastos. Fique de olho para não ultrapassar seus limites!', 
-            side: "bottom", 
-            align: 'start' 
-          }
-        },
-        { 
-          element: '#categorias-section', 
-          popover: { title: 'Categorias Inteligentes', description: 'Organize suas movimentações e defina limites mensais para receber alertas.', side: 'top', align: 'start' }
-        },
-        { 
-          element: '#transacoes-section', 
-          popover: { title: 'Extrato Rápido', description: 'Visualize os últimos lançamentos, filtre por entradas/saídas e exclua erros.', side: 'top', align: 'start' }
-        },
-        { 
-          element: '#form-section', 
-          popover: { title: 'Lançamentos', description: 'Onde a mágica acontece. Registre compras, crie parcelamentos no cartão e configure despesas recorrentes mensais.', side: 'left', align: 'start' }
-        },
-        { 
-          element: '#ai-button', 
-          popover: { title: 'Inteligência Artificial', description: 'Seu consultor financeiro particular! Clique aqui a qualquer momento para pedir análises sobre o seu saldo ou dicas de economia.', side: 'left', align: 'end' }
-        }
+        { popover: { title: 'Bem-vindo ao FinAI! 🚀', description: 'Este é o seu painel central.', align: 'center' } },
+        { element: '#saldo-card', popover: { title: 'Seu Saldo Atual', description: 'Balanço total acumulado.', side: "bottom", align: 'start' } },
+        { element: '#metas-card', popover: { title: 'Suas Entradas', description: 'Total de receitas do mês.', side: "bottom", align: 'start' } },
+        { element: '#graficos-card', popover: { title: 'Suas Saídas', description: 'Total de despesas do mês.', side: "bottom", align: 'start' } },
+        { element: '#categorias-section', popover: { title: 'Categorias Inteligentes', description: 'Organize suas movimentações.', side: 'top', align: 'start' } },
+        { element: '#transacoes-section', popover: { title: 'Extrato Rápido', description: 'Últimos lançamentos.', side: 'top', align: 'start' } },
+        { element: '#form-section', popover: { title: 'Lançamentos', description: 'Registre novas despesas/receitas.', side: 'left', align: 'start' } },
+        { element: '#ai-button', popover: { title: 'Inteligência Artificial', description: 'Consultor financeiro.', side: 'left', align: 'end' } }
       ],
       onDestroyStarted: () => {
-        // Salva no localStorage quando o usuário termina ou fecha o tour
         if (!driverObj.hasNextStep() || confirm("Deseja fechar o tutorial?")) {
           driverObj.destroy();
           localStorage.setItem('dashboard_tutorial', 'true');
         }
       },
     });
-
-    // Inicia a execução do pop-up
     driverObj.drive();
+  }
+
+  private parseLocalDate(dateString: string): string {
+    if (!dateString) return new Date().toISOString();
+    const [year, month, day] = dateString.split('-').map(Number);
+    const localDate = new Date(year, month - 1, day, 12, 0, 0);
+    return localDate.toISOString();
   }
 
   onDateChange(): void {
@@ -264,6 +272,10 @@ export class DashboardPage implements OnInit {
     return this.transactionForm.get('type')?.value === 'EXPENSE';
   }
 
+  get isEditExpense(): boolean {
+    return this.editTransactionForm.get('type')?.value === 'EXPENSE';
+  }
+
   get filteredTransactions(): Transaction[] {
     if (this.currentFilter === 'ALL') return this.transactions;
     return this.transactions.filter(t => t.type === this.currentFilter);
@@ -285,6 +297,83 @@ export class DashboardPage implements OnInit {
     }
   }
 
+  // MODAL DE EDIÇÃO DE TRANSAÇÃO
+  openEditTransactionModal(transaction: Transaction): void {
+    this.selectedTransactionForEdit = transaction;
+    
+    let formattedDate = '';
+    if (transaction.date) {
+      const dateObj = new Date(transaction.date);
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      formattedDate = `${year}-${month}-${day}`;
+    }
+
+    this.editTransactionForm.patchValue({
+      description: transaction.title,
+      amount: transaction.amount,
+      type: transaction.type,
+      paymentMethod: transaction.paymentMethod || 'PIX',
+      bank: transaction.bank || 'Nubank',
+      categoryId: transaction.category?.id || (transaction as any).categoryId || '',
+      installments: (transaction as any).installments || 1,
+      date: formattedDate
+    });
+
+    this.showEditTransactionModal = true;
+  }
+
+  closeEditTransactionModal(): void {
+    this.showEditTransactionModal = false;
+    this.selectedTransactionForEdit = null;
+    this.editTransactionForm.reset();
+  }
+
+  onUpdateTransaction(): void {
+    if (this.editTransactionForm.invalid || !this.selectedTransactionForEdit) {
+      alert('⚠️ Preencha os campos da transação corretamente.');
+      return;
+    }
+
+    this.loading = true;
+    const val = this.editTransactionForm.value;
+
+    const transactionDate = val.date 
+      ? this.parseLocalDate(val.date) 
+      : this.selectedTransactionForEdit.date;
+
+    const payload = {
+      title: val.description,
+      amount: Number(val.amount),
+      type: val.type,
+      paymentMethod: val.type === 'EXPENSE' ? val.paymentMethod : undefined,
+      bank: val.bank || 'Geral',
+      categoryId: (val.type === 'EXPENSE' && val.categoryId && val.categoryId !== '') ? val.categoryId : undefined,
+      date: transactionDate,
+      installments: (val.type === 'EXPENSE' && val.paymentMethod === 'CREDIT') ? Number(val.installments) : 1
+    };
+
+    this.transactionService.updateTransaction(this.selectedTransactionForEdit.id, payload).subscribe({
+      next: () => {
+        this.loading = false;
+        this.closeEditTransactionModal();
+        this.loadDashboardData();
+        this.loadCategories();
+      },
+      error: (err) => {
+        this.loading = false;
+        const errorMessage = err.error?.message || err.message;
+        alert('❌ Erro ao atualizar movimentação: ' + errorMessage);
+      }
+    });
+  }
+
+  toggleRecurring(): void {
+    const current = this.transactionForm.get('isRecurring')?.value;
+    this.transactionForm.patchValue({ isRecurring: !current });
+  }
+
   onAddTransaction(): void {
     if (this.transactionForm.invalid) {
       alert('⚠️ Preencha a descrição e o valor corretamente.');
@@ -295,16 +384,26 @@ export class DashboardPage implements OnInit {
     this.loading = true;
     const formValue = this.transactionForm.value;
 
+    const transactionDate = formValue.date 
+      ? this.parseLocalDate(formValue.date) 
+      : new Date().toISOString();
+
+    const totalInstallments = Number(formValue.installments) || 1;
+    const paid = formValue.isPartialInstallment ? (Number(formValue.paidInstallments) || 0) : 0;
+    const remainingInstallments = Math.max(1, totalInstallments - paid);
+
     const payload = {
-      title: formValue.description,
+      title: formValue.isPartialInstallment 
+        ? `${formValue.description} (${paid + 1}/${totalInstallments})`
+        : formValue.description,
       amount: Number(formValue.amount),
       type: formValue.type,
       paymentMethod: this.isExpense ? formValue.paymentMethod : undefined,
       bank: formValue.bank || 'Geral',
       categoryId: (this.isExpense && formValue.categoryId && formValue.categoryId !== '') ? formValue.categoryId : undefined,
-      date: new Date().toISOString(),
+      date: transactionDate,
       installments: (this.isExpense && formValue.paymentMethod === 'CREDIT') 
-        ? Number(formValue.installments) 
+        ? remainingInstallments 
         : 1,
       isRecurring: formValue.isRecurring || false
     };
@@ -315,11 +414,22 @@ export class DashboardPage implements OnInit {
         this.transactionForm.reset({ 
           type: formValue.type, 
           paymentMethod: 'PIX', 
-          bank: formValue.bank || 'Nubank',
+          bank: formValue.bank || (this.banks.length > 0 ? this.banks[0] : 'Nubank'),
           categoryId: '',
           installments: 1,
+          paidInstallments: 0,
+          isPartialInstallment: false,
+          date: '',
           isRecurring: false
         });
+        
+        if (formValue.date) {
+          const [y, m] = formValue.date.split('-').map(Number);
+          this.selectedYear = y;
+          this.selectedMonth = m;
+          this.selectedDate = `${y}-${String(m).padStart(2, '0')}-01`;
+        }
+
         this.loadDashboardData();
         this.loadCategories();
       },
@@ -363,19 +473,22 @@ export class DashboardPage implements OnInit {
     }
   }
 
-  addBank(name: string): void {
-    if (name.trim() && !this.banks.includes(name.trim())) {
-      this.banks.push(name.trim());
-      this.transactionForm.patchValue({ bank: name.trim() });
-      this.newBankName = '';
+  addBank(newBankName: string): void {
+    const bankTrimmed = newBankName.trim();
+    if (!bankTrimmed) return;
+
+    if (this.banks.includes(bankTrimmed)) {
+      alert('Este banco já está cadastrado.');
+      return;
     }
+
+    this.banks.push(bankTrimmed);
+    this.saveBanks(); 
   }
 
-  removeBank(bankName: string): void {
-    this.banks = this.banks.filter(b => b !== bankName);
-    if (this.transactionForm.get('bank')?.value === bankName) {
-      this.transactionForm.patchValue({ bank: this.banks[0] || '' });
-    }
+  removeBank(bankToRemove: string): void {
+    this.banks = this.banks.filter(bank => bank !== bankToRemove);
+    this.saveBanks(); 
   }
 
   handleLogout(): void {
@@ -404,15 +517,12 @@ export class DashboardPage implements OnInit {
         this.aiLoading = false;
       }
     });
-  } // <- Aqui estava faltando a chave de fechamento do sendAiQuery!
+  }
 
-  // Métodos do Onboarding (Intro.js)
   checkAndStartTour(): void {
     const hasSeenTour = localStorage.getItem('hasSeenTour');
-    
     if (!hasSeenTour) {
       const intro = introJs();
-      
       intro.setOptions({
         nextLabel: 'Próximo',
         prevLabel: 'Anterior',
@@ -423,17 +533,9 @@ export class DashboardPage implements OnInit {
         dontShowAgainLabel: 'Não mostrar novamente',
         dontShowAgainCookie: 'hasSeenTour'
       });
-
-      intro.oncomplete(() => {
-        localStorage.setItem('hasSeenTour', 'true');
-      });
-
-      intro.onexit(() => {
-        localStorage.setItem('hasSeenTour', 'true');
-      });
-
+      intro.oncomplete(() => localStorage.setItem('hasSeenTour', 'true'));
+      intro.onexit(() => localStorage.setItem('hasSeenTour', 'true'));
       intro.start();
     }
   }
-
 }

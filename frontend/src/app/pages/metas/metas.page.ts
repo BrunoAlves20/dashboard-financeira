@@ -4,6 +4,28 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { driver } from 'driver.js';
+import { 
+  LucideAngularModule, 
+  Target, 
+  Shield, 
+  Plane, 
+  Car, 
+  Home, 
+  Laptop, 
+  GraduationCap, 
+  Heart, 
+  Smartphone, 
+  Sun, 
+  PiggyBank, 
+  Gamepad2, 
+  Briefcase, 
+  Trophy,
+  Pencil,
+  Trash2,
+  PlusCircle,
+  HelpCircle,
+  Coins
+} from 'lucide-angular';
 
 import localePt from '@angular/common/locales/pt';
 registerLocaleData(localePt);
@@ -19,7 +41,7 @@ export interface Goal {
 @Component({
   selector: 'app-metas',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, LucideAngularModule],
   templateUrl: './metas.page.html',
   styleUrl: './metas.page.scss'
 })
@@ -32,14 +54,43 @@ export class MetasPage implements OnInit, AfterViewInit {
   selectedGoal: Goal | null = null;
   depositAmount: number = 0;
 
-  // Lista de emojis pré-definidos para escolha rápida
-  availableEmojis: string[] = ['🎯', '🛡️', '✈️', '🚗', '🏠', '💻', '🎓', '💍', '📱', '🏖️', '💰', '🎮'];
+  // Dicionário de ícones disponíveis para busca dinâmica por chave
+  readonly iconsMap: { [key: string]: any } = {
+    'Target': Target,
+    'Shield': Shield,
+    'Plane': Plane,
+    'Car': Car,
+    'Home': Home,
+    'Laptop': Laptop,
+    'GraduationCap': GraduationCap,
+    'Heart': Heart,
+    'Smartphone': Smartphone,
+    'Sun': Sun,
+    'PiggyBank': PiggyBank,
+    'Gamepad2': Gamepad2,
+    'Briefcase': Briefcase,
+    'Trophy': Trophy
+  };
+
+  // Exposição direta dos ícones estáticos para uso no HTML ([img]="Target")
+  readonly Target = Target;
+  readonly Pencil = Pencil;
+  readonly Trash2 = Trash2;
+  readonly PlusCircle = PlusCircle;
+  readonly HelpCircle = HelpCircle;
+  readonly Coins = Coins;
+
+  availableIconKeys: string[] = [
+    'Target', 'Shield', 'Plane', 'Car', 'Home', 'Laptop', 
+    'GraduationCap', 'Heart', 'Smartphone', 'Sun', 'PiggyBank', 
+    'Gamepad2', 'Briefcase', 'Trophy'
+  ];
 
   // Form de meta (Criar / Editar)
   goalIdToEdit: string | null = null;
   newGoalTitle: string = '';
   newGoalTarget: number = 0;
-  newGoalIcon: string = '🎯';
+  newGoalIcon: string = 'Target';
 
   goals: Goal[] = [];
 
@@ -61,21 +112,22 @@ export class MetasPage implements OnInit, AfterViewInit {
     }
   }
 
+  // CARREGA APENAS O QUE O USUÁRIO SALVOU (Sem criar exemplos automaticamente)
   loadGoals(): void {
     const savedGoals = localStorage.getItem('user_goals');
     if (savedGoals) {
       this.goals = JSON.parse(savedGoals);
     } else {
-      this.goals = [
-        { id: '1', title: 'Reserva de Emergência', targetAmount: 10000, currentAmount: 3500, icon: '🛡️' },
-        { id: '2', title: 'Viagem de Fim de Ano', targetAmount: 5000, currentAmount: 1200, icon: '✈️' }
-      ];
-      this.saveGoals();
+      this.goals = []; // Inicia completamente limpo!
     }
   }
 
   saveGoals(): void {
     localStorage.setItem('user_goals', JSON.stringify(this.goals));
+  }
+
+  getIconComponent(iconName: string): any {
+    return this.iconsMap[iconName] || Target;
   }
 
   // Abre modal para CRIAR
@@ -84,7 +136,7 @@ export class MetasPage implements OnInit, AfterViewInit {
     this.goalIdToEdit = null;
     this.newGoalTitle = '';
     this.newGoalTarget = 0;
-    this.newGoalIcon = '🎯';
+    this.newGoalIcon = 'Target';
     this.showGoalModal = true;
   }
 
@@ -94,7 +146,7 @@ export class MetasPage implements OnInit, AfterViewInit {
     this.goalIdToEdit = goal.id;
     this.newGoalTitle = goal.title;
     this.newGoalTarget = goal.targetAmount;
-    this.newGoalIcon = goal.icon;
+    this.newGoalIcon = goal.icon || 'Target';
     this.showGoalModal = true;
   }
 
@@ -106,7 +158,6 @@ export class MetasPage implements OnInit, AfterViewInit {
     }
 
     if (this.isEditing && this.goalIdToEdit) {
-      // Atualiza meta existente
       const index = this.goals.findIndex(g => g.id === this.goalIdToEdit);
       if (index !== -1) {
         this.goals[index].title = this.newGoalTitle;
@@ -114,13 +165,12 @@ export class MetasPage implements OnInit, AfterViewInit {
         this.goals[index].icon = this.newGoalIcon;
       }
     } else {
-      // Cria nova meta
       const newGoal: Goal = {
         id: Date.now().toString(),
         title: this.newGoalTitle,
         targetAmount: this.newGoalTarget,
         currentAmount: 0,
-        icon: this.newGoalIcon || '🎯'
+        icon: this.newGoalIcon || 'Target'
       };
       this.goals.push(newGoal);
     }
@@ -154,7 +204,6 @@ export class MetasPage implements OnInit, AfterViewInit {
     this.authService.logout();
   }
 
-  // MOTOR DO TOUR INTERATIVO (DRIVER.JS)
   restartTour(): void {
     const driverObj = driver({
       showProgress: true,

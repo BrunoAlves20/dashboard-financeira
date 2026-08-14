@@ -17,7 +17,9 @@ import {
   Layers, 
   CheckCircle2,
   TrendingUp,
-  Sparkles
+  Sparkles,
+  Linkedin,
+  Github
 } from 'lucide-angular';
 
 @Component({
@@ -47,6 +49,8 @@ export class LandingComponent implements OnInit {
   readonly CheckCircle2 = CheckCircle2;
   readonly TrendingUp = TrendingUp;
   readonly Sparkles = Sparkles;
+  readonly Linkedin = Linkedin;
+  readonly Github = Github;
 
   constructor(
     private authService: AuthService,

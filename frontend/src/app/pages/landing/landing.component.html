@@ -32,9 +32,9 @@
     
     <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-semibold">
       <lucide-icon [img]="Sparkles" class="w-3.5 h-3.5"></lucide-icon>
-      <span>Plataforma Full-Stack com IA</span>
+      <span>Plataforma Financeira</span>
       <span class="text-gray-300 dark:text-slate-700">•</span>
-      <span class="text-gray-600 dark:text-slate-300">Angular & NestJS</span>
+      <span class="text-gray-600 dark:text-slate-300">Controle a sua vida financeira</span>
     </div>
 
     <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight max-w-4xl text-gray-900 dark:text-white leading-tight">
@@ -89,7 +89,7 @@
 
     </div>
 
-    <div class="w-full bg-white dark:bg-slate-900/40 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 mt-12 text-left">
+    <!-- <div class="w-full bg-white dark:bg-slate-900/40 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 mt-12 text-left">
       <div class="flex items-center gap-2 mb-4">
         <lucide-icon [img]="Cpu" class="w-5 h-5 text-indigo-600 dark:text-indigo-400"></lucide-icon>
         <h4 class="text-sm font-bold text-gray-900 dark:text-white">Diferenciais Técnicos da Arquitetura</h4>
@@ -112,13 +112,40 @@
           <span>Integração Nativa Google Gemini API</span>
         </div>
       </div>
-    </div>
+    </div> -->
 
   </main>
 
-  <footer class="w-full max-w-7xl mx-auto px-6 py-6 border-t border-gray-200 dark:border-slate-800 text-center text-xs text-gray-500 dark:text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
-    <p>© 2026 FinAI Dashboard. Sistema de Gestão Financeira Pessoal.</p>
-    <p class="text-[11px]">Desenvolvido com Angular, NestJS & Tailwind</p>
+  <!-- RODAPÉ CORRIGIDO COM ÍCONES LUCIDE -->
+  <footer class="w-full max-w-7xl mx-auto px-6 py-6 border-t border-gray-200 dark:border-slate-800 text-center text-xs text-gray-500 dark:text-slate-400 flex flex-col sm:flex-row justify-between items-center gap-4">
+    
+    <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+      <span>© 2026 FinAI Dashboard. Sistema de Gestão Financeira Pessoal</span>
+      <span class="hidden sm:inline text-gray-300 dark:text-slate-700">•</span>
+      <span class="text-[11px] font-medium text-gray-700 dark:text-slate-300">Desenvolvido por Bruno Nogueira</span>
+    </div>
+
+    <!-- LINKS SOCIAIS (LINKEDIN & GITHUB) -->
+    <div class="flex items-center gap-3">
+      <a 
+        href="https://www.linkedin.com/in/brunonogueiraalves/" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        class="p-2 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-white hover:border-indigo-500/40 transition-all shadow-sm flex items-center justify-center"
+        title="LinkedIn">
+        <lucide-icon [img]="Linkedin" class="w-4 h-4"></lucide-icon>
+      </a>
+
+      <a 
+        href="https://github.com/BrunoAlves20" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        class="p-2 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-white hover:border-indigo-500/40 transition-all shadow-sm flex items-center justify-center"
+        title="GitHub">
+        <lucide-icon [img]="Github" class="w-4 h-4"></lucide-icon>
+      </a>
+    </div>
+
   </footer>
 
 </div>
