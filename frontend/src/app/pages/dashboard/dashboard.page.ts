@@ -388,15 +388,24 @@ export class DashboardPage implements OnInit {
       ? this.parseLocalDate(formValue.date) 
       : new Date().toISOString();
 
+    // 1. Coleta os dados originais digitados
+    const originalAmount = Number(formValue.amount) || 0;
     const totalInstallments = Number(formValue.installments) || 1;
     const paid = formValue.isPartialInstallment ? (Number(formValue.paidInstallments) || 0) : 0;
     const remainingInstallments = Math.max(1, totalInstallments - paid);
 
+    // 2. MATEMÁTICA DE PARCELAS PARCIAIS
+    // Descobre o valor real de 1 parcela (ex: 1033 / 10 = 103.30)
+    const singleInstallmentValue = originalAmount / totalInstallments;
+    
+    // Calcula o Montante Total Restante (ex: 103.30 * 6 = 619.80)
+    const adjustedTotalAmount = formValue.isPartialInstallment 
+      ? (singleInstallmentValue * remainingInstallments)
+      : originalAmount;
+
     const payload = {
-      title: formValue.isPartialInstallment 
-        ? `${formValue.description} (${paid + 1}/${totalInstallments})`
-        : formValue.description,
-      amount: Number(formValue.amount),
+      title: formValue.description, // Envia apenas o nome, o backend já adiciona o (1/6) automaticamente
+      amount: Number(adjustedTotalAmount.toFixed(2)), // Envia o montante restante ajustado
       type: formValue.type,
       paymentMethod: this.isExpense ? formValue.paymentMethod : undefined,
       bank: formValue.bank || 'Geral',

@@ -215,4 +215,22 @@ export class TransactionsService {
       where: { id },
     });
   }
+
+  async update(id: string, updateData: any) {
+    // Verifica se a transação existe antes de atualizar
+    const transactionExists = await this.prisma.transaction.findUnique({
+      where: { id }
+    });
+
+    if (!transactionExists) {
+      throw new NotFoundException('Transação não encontrada');
+    }
+
+    // Atualiza os dados no banco de dados
+    return this.prisma.transaction.update({
+      where: { id },
+      data: updateData,
+    });
+  }
+
 }

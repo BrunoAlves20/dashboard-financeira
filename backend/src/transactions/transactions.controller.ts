@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, UseGuards, Query, Patch } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -45,5 +45,13 @@ export class TransactionsController {
     @Query('endDate') endDate: string,
   ) {
     return this.transactionsService.findByCustomPeriod(userId, startDate, endDate);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id') id: string, 
+    @Body() updateTransactionDto: any 
+  ) {
+    return this.transactionsService.update(id, updateTransactionDto);
   }
 }
