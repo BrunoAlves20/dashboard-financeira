@@ -16,7 +16,6 @@ export interface Category {
 export class CategoryService {
 private apiUrl = 'https://financas-bruno-api.duckdns.org/categories';  
   // private apiUrl = 'http://localhost:3000/categories';
-  // private apiUrl = 'https://dashboard-financeira.onrender.com/categories';
 
   constructor(private http: HttpClient) {}
 

@@ -19,7 +19,6 @@ export class TransactionsService {
 
     if (!category || !category.budgetLimit) return;
 
-    // Soma os gastos acumulados nesta categoria no mês atual
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
@@ -36,7 +35,6 @@ export class TransactionsService {
 
     const totalSpent = totalSpentResult._sum.amount || 0;
 
-    // Se ultrapassou o limite, envia o e-mail de alerta!
     if (totalSpent > category.budgetLimit) {
       const user = await this.prisma.user.findUnique({ where: { id: userId } });
       if (user && user.email) {
@@ -60,7 +58,6 @@ export class TransactionsService {
     const installments = dto.installments && dto.installments > 1 ? dto.installments : 1;
     const isCreditCard = dto.paymentMethod === 'CREDIT';
 
-    // Trata categoryId vazia ou 'null' enviada pelo front
     const categoryId = (dto.categoryId && dto.categoryId !== 'null' && dto.categoryId !== '') 
       ? dto.categoryId 
       : null;
@@ -74,7 +71,6 @@ export class TransactionsService {
 
       for (let i = 0; i < installments; i++) {
         const currentDate = new Date(baseDate);
-        
         const targetMonth = baseDate.getMonth() + i;
         currentDate.setMonth(targetMonth);
         
@@ -114,7 +110,6 @@ export class TransactionsService {
       });
     }
 
-    // Dispara a checagem de limite por e-mail após a criação
     if (categoryId) {
       this.checkCategoryAlert(userId, categoryId);
     }
@@ -122,7 +117,6 @@ export class TransactionsService {
     return createdResult;
   }
 
-  // BUSCA APENAS TRANSAÇÕES DO MÊS/ANO SELECIONADO
   async findAllByUser(userId: string, month?: number, year?: number) {
     const whereCondition: any = { userId };
 
@@ -143,7 +137,6 @@ export class TransactionsService {
     });
   }
 
-  // BUSCA TRANSAÇÕES POR PERÍODO PERSONALIZADO (EXTRATOR)
   async findByCustomPeriod(userId: string, startDateStr: string, endDateStr: string) {
     const startDate = new Date(startDateStr);
     const endDate = new Date(endDateStr);
@@ -183,7 +176,6 @@ export class TransactionsService {
     };
   }
 
-  // RESUMO ZERADO/RENOVADO MENSALMENTE
   async getSummary(userId: string, month?: number, year?: number) {
     const transactions = await this.findAllByUser(userId, month, year);
 
@@ -200,6 +192,57 @@ export class TransactionsService {
       incomes,
       expenses,
     };
+  }
+
+  // NOVA FUNÇÃO DE ATUALIZAÇÃO ADICIONADA AQUI
+  async update(id: string, updateData: any) {
+    try {
+      const transactionExists = await this.prisma.transaction.findUnique({
+        where: { id }
+      });
+
+      if (!transactionExists) {
+        throw new NotFoundException('Transação não encontrada');
+      }
+
+      const dataToUpdate: any = {};
+      
+      if (updateData.title !== undefined) dataToUpdate.title = updateData.title;
+      if (updateData.amount !== undefined) dataToUpdate.amount = Number(updateData.amount);
+      if (updateData.type !== undefined) dataToUpdate.type = updateData.type;
+      if (updateData.paymentMethod !== undefined) dataToUpdate.paymentMethod = updateData.paymentMethod;
+      if (updateData.bank !== undefined) dataToUpdate.bank = updateData.bank;
+      
+      if (updateData.categoryId !== undefined) {
+        dataToUpdate.categoryId = (updateData.categoryId && updateData.categoryId !== 'null' && updateData.categoryId !== '') 
+          ? updateData.categoryId 
+          : null;
+      }
+      
+      if (updateData.date !== undefined && updateData.date !== null && updateData.date !== '') {
+        dataToUpdate.date = new Date(updateData.date);
+      }
+      
+      // 👇 CORREÇÃO: O Prisma espera 'installmentsCount' e não 'installments'
+      if (updateData.installments !== undefined) {
+        dataToUpdate.installmentsCount = Number(updateData.installments);
+      }
+      
+      if (updateData.isRecurring !== undefined) dataToUpdate.isRecurring = updateData.isRecurring;
+
+      return await this.prisma.transaction.update({
+        where: { id },
+        data: dataToUpdate,
+      });
+
+    } catch (error) {
+      console.error('\n=== ❌ ERRO AO ATUALIZAR TRANSAÇÃO ===');
+      console.error('ID da transação:', id);
+      console.error('Dados Recebidos:', updateData);
+      console.error('Detalhe do erro:', error);
+      console.error('======================================\n');
+      throw new Error('Falha interna ao atualizar transação.');
+    }
   }
 
   async remove(id: string, userId: string) {

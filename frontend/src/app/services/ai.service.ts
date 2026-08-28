@@ -13,8 +13,8 @@ export class AiService {
   
 private apiUrl = 'https://financas-bruno-api.duckdns.org/ai/ask';  // Para produção (apontando para o seu novo servidor EC2 na AWS):
 
-  // private apiUrl = 'http://localhost:3001/ai/ask';
-  // private apiUrl = 'https://dashboard-financeira.onrender.com/ai/ask';
+  // private apiUrl = 'http://localhost:3000/ai/ask';
+
 
   constructor(private http: HttpClient) {}
 
