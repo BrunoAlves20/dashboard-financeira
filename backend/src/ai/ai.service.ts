@@ -27,7 +27,7 @@ export class AiService {
 
       // 3. Executa a chamada no modelo Gemini
       const response = await this.ai.models.generateContent({
-        model: 'gemini-flash-latest',
+        model: 'gemini-3.6-flash',
         contents: [
           { role: 'user', parts: [{ text: finalPromptText }] }
         ]

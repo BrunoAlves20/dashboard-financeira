@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -32,12 +32,17 @@ export class TransactionsController {
       year ? Number(year) : undefined
     );
   }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateData: any) {
+    return this.transactionsService.update(id, updateData);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string, @GetUser('id') userId: string) {
     return this.transactionsService.remove(id, userId);
   }
 
-  // ROTA DO EXTRATOR: GET /transactions/statement?startDate=2026-06-05&endDate=2026-07-04
   @Get('statement')
   getStatement(
     @GetUser('id') userId: string,

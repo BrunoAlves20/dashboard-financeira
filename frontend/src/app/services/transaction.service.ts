@@ -24,9 +24,8 @@ export interface Transaction {
   providedIn: 'root'
 })
 export class TransactionService {
-private apiUrl = 'https://financas-bruno-api.duckdns.org/transactions';  // private apiUrl = 'http://98.81.217.35:3000/transactions';
+private apiUrl = 'https://financas-bruno-api.duckdns.org/transactions';  
   // private apiUrl = 'http://localhost:3000/transactions';
-  // private apiUrl = 'https://dashboard-financeira.onrender.com/transactions';
 
   constructor(private http: HttpClient) {}
 
